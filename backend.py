@@ -1,5 +1,6 @@
 import subprocess as sp
 import os
+from time import sleep
 
 # All Functions are mentioned below
 
@@ -85,28 +86,32 @@ def create_sg(sgname,description="None",save_file="sg.txt",save_file_mode="a",sa
     save: True or False
 
     output:
-    None
+    Security Group Id or None
 
     message:
     Security Group Created or Not Created
     """
     if(description=="None"):
-        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description '{0} created for webserver' ".format(sgname))
+        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {0} ".format(sgname))
     else:
-        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description '{1}' ".format(sgname,description))
+        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {1} ".format(sgname,description))
     if(sg[0]==0):
         print("Security Group Created")
-        sg_id=sp.getstatusoutput("aws ec2 describe-security-groups --group-names webserver_sg_test --query 'SecurityGroups[0].GroupId' --output text")
+        sg_id=sp.getstatusoutput("aws ec2 describe-security-groups --group-names {} --query SecurityGroups[0].GroupId --output text".format(sgname))
         if(sg_id[0]==0):
             print("Security Group ID Obtained")
             file=open(save_file,save_file_mode)
             file.write("Security Group ID: "+sg_id[1]+"\n")
             file.close()
             print("Security Group ID Written to File")
+            return sg_id[1]
         else:
             print("Security Group ID Not Obtained")
+            return None
     else:
         print("Security Group Not Created")
+        print("Error Code:",sg)
+        return None
 
 #function to create security group rule
 def create_sg_rule(sgname,port,protocol,type="ingress",cidr="0.0.0.0/0",source_sg=None):
@@ -148,7 +153,86 @@ def create_sg_rule(sgname,port,protocol,type="ingress",cidr="0.0.0.0/0",source_s
         print("Security Group Rule Created")
     else:
         print("Security Group Rule Not Created")
+        print("Error Code:",sg_rule)
 
 
+#function to create instance
+def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d",security_group_ids=None,save_file="instance.txt",save_file_mode="a",save=True):
+    """
+    Description:
+    Create Instance and save instance id in a file
+
+    Input:
+    keyname: key name
+    sgname: security group name
+    instance_type: t2.micro, t2.small, t2.medium, t2.large, t2.xlarge, t2.2xlarge, m3.medium, m3.large, m3.xlarge, m3.2xlarge, m4.large, m4.xlarge, m4.2xlarge, m4.4xlarge, m4.10xlarge
+    image_id: AMI ID (default ami-0f1fb91a596abf28d)
+    security_group_ids: security group id 1, security group id 2
+    instance_name: instance name
+    save_file: file name to save instance id
+    save_file_mode: file mode to save instance id
+    save: True or False
+
+    Output:
+    Instance Id or None
+
+    Message:
+    Instance Created or Not Created
+
+    """
+    if( sgname==None):
+        instance=sp.getstatusoutput("aws ec2 run-instances --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-group-ids {3} --query Instances[].InstanceId  --output text".format(image_id,instance_type,keyname,security_group_ids))
+    else:
+        instance=sp.getstatusoutput("aws ec2 run-instances --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-groups {3}   --query Instances[].InstanceId --output text".format(image_id,instance_type,keyname,sgname))
+    if (instance[0]==0):
+        instance_id=instance[1]
+        print("Instance Created. Starting in 30 sec")
+        sleep(10)
+        print(instance_id)
+        instance_ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(instance_id))
+        if(instance_ip[0]==0):
+            print("Instance ID Obtained")
+            file=open(save_file,save_file_mode)
+            file.write("Instance ID: "+instance_id+"\n")
+            file.write("Instance IP: "+instance_ip[1]+"\n")
+            file.close()
+            print("Instance ID Written to File")
+            return instance_id
+        else:
+            print("Instance ID Not Obtained")
+            print("Error Code:",instance_ip)
+            return None
+    else:    
+        print("Instance Not Created")
+        print("Error Code:",instance)
+        return None
 
 
+# myfunc()
+
+def main():
+    """
+    Description:
+    Main function
+
+    Input:
+    None
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    project=input("Enter your website name :")
+    #print("Your website name is :",project)
+    #create_key(project+"_key_pair")
+    #sg_id=create_sg(sgname=project+"_sg",save_file=project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
+    #print("Security Group ID:",sg_id)
+    #create_sg_rule(sg_id,80,"tcp")
+    #create_sg_rule(sg_id,22,"tcp")
+    instance_id=create_instance(keyname=project+"_key_pair",sgname=project+"_sg",save_file=project+"_detail.txt",save_file_mode="a",save=True,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d")
+    print("Instance ID is :",instance_id)
+
+main()
