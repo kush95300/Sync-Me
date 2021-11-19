@@ -27,9 +27,10 @@ def create_key(keyname):
         else:
             key_security_mode_linux(os.getlogin(),keyname)
         print("Key Security Mode Set")
-             
+        return True
     else:
         print("Key Not Created")
+        return False
 
 #function to create key pair file mode for linux
 def key_security_mode_linux(user,keyname):
