@@ -16,8 +16,8 @@ def main():
     None
 
     """
-    #project=input("Enter your website name :")
-    project="Website_new"
+    project=input("Enter your website name :")
+    #project="Website_name"
     path=pro_path+"\\"+project
     print("Project Detail will save at "+path)
     project_foldr=sp.getstatusoutput("mkdir "+path)
@@ -78,5 +78,7 @@ def main():
     print("Your website url is :",url)
     return 0
 
+# get absolute path of current file
 pro_path=os.path.dirname(os.path.abspath(__file__))
 main()
+

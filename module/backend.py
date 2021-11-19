@@ -230,14 +230,14 @@ def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destina
 
     """
     
-    dest_dir=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} mkdir -p {} ".format(key_pair,user_name,ip,destination_path))  
+    dest_dir=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {}  {}@{} mkdir -p {} ".format(key_pair,user_name,ip,destination_path))  
     if(dest_dir[0]==0):
         print("Destination Directory Created")
     else:
         print("Destination Directory Not Created")
         print("Error Code:",dest_dir)
         return None
-    code=sp.getstatusoutput("scp -o StrictHostKeyChecking=no -i {} {} {}@{}:{}".format(key_pair,source_path,user_name,ip,destination_path))
+    code=sp.getstatusoutput("scp -o StrictHostKeyChecking=no -i {} -rp {} {}@{}:{}".format(key_pair,source_path,user_name,ip,destination_path))
     if(code[0]==0):
         print("Code Uploaded")
     else:
