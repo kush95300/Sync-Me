@@ -17,7 +17,7 @@ def main():
 
     """
     #project=input("Enter your website name :")
-    project="Website_new4"
+    project="Website_new"
     path=pro_path+"\\"+project
     print("Project Detail will save at "+path)
     project_foldr=sp.getstatusoutput("mkdir "+path)
@@ -66,10 +66,16 @@ def main():
         else:
             print("Instance is running")
             instance=(id,ip)      
-    """
-    url=upload_code(key_pair=project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=os.path.dirname(os.path.abspath(__file__))+"/Webcode/*",destination_path=project+"_code")
-    create_file(file_name="url.txt",file_path=path,data=url,mode="w")
-    """
+    print("checking website already hosted or not")
+    get_url=get_data_from_file(file_name=project+"_url.txt",file_path=path,mode="r")
+    if get_url==None or get_url=="":
+        print("Website not hosted. Creating webserver")
+        url=upload_code(key_pair=path+"\\"+project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=os.path.dirname(os.path.abspath(__file__))+"/Webcode/*",destination_path=project+"_code")
+        create_file(file_name=project+"_url.txt",file_path=path,data=url,mode="w")
+    else:
+        print("Website already hosted")
+        url=get_url
+    print("Your website url is :",url)
     return 0
 
 pro_path=os.path.dirname(os.path.abspath(__file__))
