@@ -28,20 +28,23 @@ def main():
         print(project_foldr)
 
     print("Your website name is :",project)
+    """
     try:
         create_key(project+"_key_pair")
         os.system("move {0} {1}".format(project+"_key_pair_webserver_accesskey.pem",path))
     except:
         print("Key pair already exist")
     """
-    try:
-        sg_id=create_sg(sgname=project+"_sg",save_file=project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
-        create_file(file_name="sg.txt",file_path=path,data=sg_id,mode="w")
+    
+    sg_id=get_data_from_file(file_name=project+"_sg.txt",mode="r",file_path=path)
+    if sg_id==None or sg_id=="":
+        print("Sg not exist, creating SG")
+        sg_id=create_sg(sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
+        create_file(file_name=project+"_sg.txt",file_path=path,data=sg_id,mode="w")
         create_sg_rule(sg_id,80,"tcp")
         create_sg_rule(sg_id,22,"tcp")
-    except:
-        print("Sg already exist")
-        sg_id=get_data_from_file(file_name="sg.txt",mode="r",file_path=path)
+    print("Sg id is :",sg_id)
+    """
     try:        
         instance=create_instance(keyname=project+"_key_pair",sgname=project+"_sg",save_file=project+"_detail.txt",save_file_mode="a",save=True,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d")
         print("Instance ID is :",instance)
