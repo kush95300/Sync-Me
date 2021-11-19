@@ -53,8 +53,9 @@ def main():
         instance=create_instance(keyname=project+"_key_pair",sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d")
         print("Instance ID is :",instance[0])
         create_file(file_name="instance_id.txt",file_path=path,data=instance[0],mode="w")
-        print("Instance is booting.Wait 10 sec")
-        sleep(15)
+        print("Instance is booting.Wait 20 sec")
+        sleep(20
+        )
         print("Instance is running")
     else:
         print("Instance already exist")
@@ -72,10 +73,15 @@ def main():
         print("Website not hosted. Creating webserver")
         url=upload_code(key_pair=path+"\\"+project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=os.path.dirname(os.path.abspath(__file__))+"/Webcode/*",destination_path=project+"_code")
         create_file(file_name=project+"_url.txt",file_path=path,data=url,mode="w")
+        dns_url=get_instance_dns_name(instance[0])
+        create_file(file_name=project+"_dns_url.txt",file_path=path,data=dns_url,mode="w")
+        create_file(file_name=project+"_detail.txt",file_path=path,data="Website DNS Url :"+url+"\n",mode="a")
     else:
         print("Website already hosted")
         url=get_url
     print("Your website url is :",url)
+    print("Your website dns url is :",get_data_from_file(file_name=project+"_dns_url.txt",file_path=path,mode="r"))
+
     return 0
 
 # get absolute path of current file
