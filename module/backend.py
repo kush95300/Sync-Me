@@ -174,7 +174,7 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
     save: True or False
 
     Output:
-    Instance Id or None
+    (Instance Id, Instance IP) or None
 
     Message:
     Instance Created or Not Created
@@ -197,7 +197,7 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
             file.write("Instance IP: "+instance_ip[1]+"\n")
             file.close()
             print("Instance ID Written to File")
-            return instance_id
+            return (instance_id,instance_ip[1])
         else:
             print("Instance ID Not Obtained")
             print("Error Code:",instance_ip)
@@ -207,4 +207,152 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
         print("Error Code:",instance)
         return None
 
+# upload code to instance
+def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destination_path="/home/ec2-user/webcode"):
+    """
+    Description:
+    Upload code to instance
 
+    Input:
+    instance_id: instance id
+    file_name: file name
+    file_path: file path
+    save_file: file name to save instance id
+    save_file_mode: file mode to save instance id
+    save: True or False
+
+    Output:
+    None
+
+    Message:
+    Code Uploaded or Not Uploaded
+
+    """
+    
+    dest_dir=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} mkdir -p {} ".format(key_pair,user_name,ip,destination_path))  
+    if(dest_dir[0]==0):
+        print("Destination Directory Created")
+    else:
+        print("Destination Directory Not Created")
+        print("Error Code:",dest_dir)
+        return None
+    code=sp.getstatusoutput("scp -o StrictHostKeyChecking=no -i {} {} {}@{}:{}".format(key_pair,source_path,user_name,ip,destination_path))
+    if(code[0]==0):
+        print("Code Uploaded")
+    else:
+        print("Code Not Uploaded")
+        print("Error Code:",code)
+        return None
+    webserver=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} sudo yum install httpd -y ".format(key_pair,user_name,ip))
+    if(webserver[0]==0):
+        print("Web Server Installed")   
+    else:
+        print("Web Server Not Installed")
+        print("Error Code:",webserver)
+        return None
+
+    configure_webserver=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} /usr/bin/sudo mv /home/ec2-user/{}/* /var/www/html/".format(key_pair,user_name,ip,destination_path))
+    if (configure_webserver[0]==0):
+        print("Web Server Configured")
+    else:
+        print("Web Server Not Configured")
+        print("Error Code:",configure_webserver)
+        return None
+    start_webserver=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{}   /usr/bin/sudo systemctl start httpd".format(key_pair,user_name,ip))
+    if (start_webserver[0]==0):
+        print("Web Server Started")
+    else:
+        print("Web Server Not Started")
+        print("Error Code:",start_webserver)
+        return None
+    if not(code[0] and dest_dir[0] and webserver[0] and configure_webserver[0] and start_webserver[0]):
+        print("Code Uploaded")
+        return "http://{}".format(ip)
+    else:
+        print("Code Not Uploaded")
+        return None
+
+# To create a local file
+def create_file(file_name,data,file_path,mode="w"):
+    """
+    Description:
+    Create a local file
+
+    Input:
+    data: data to be written in file
+    file_name: file name
+    file_path: file path
+    file_mode: file mode
+
+    Output:
+    None
+
+    Message:
+    File Created or Not Created
+
+    """
+    try:
+        file=open(file_path+"/"+file_name,mode)
+        file.write(data)
+        file.close()
+        print("File Created")
+    except:
+        print("File Not Created")
+    
+    # getter function
+
+    # To get data from local file
+def get_data_from_file(file_name,file_path=os.path.dirname(os.path.abspath(__file__)),mode="r"):
+    """
+    Description:
+    Get data from local file
+
+    Input:
+    file_name: file name
+    file_path: file path
+
+    Output:
+    data: data from file
+
+    Message:
+    Data Obtained or Not Obtained
+
+    """
+    try:
+        file=open(file_path+"/"+file_name,mode)
+        data=file.read()
+        file.close()
+        print("Data Obtained")
+        return data
+    except:
+        print("Data Not Obtained")
+        return None
+
+# get instance ip 
+def get_instance_ip(id):
+    """
+    Description:
+    Get instance ip
+
+    Input:
+    id: instance id
+
+    Output:
+    ip: instance ip
+
+    Message:
+    IP Obtained or Not Obtained
+
+    """
+    try:
+        ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(id))
+        if(ip[0]==0):
+            print("IP Obtained")
+            return ip[1]
+        else:
+            print("IP Not Obtained")
+            print("Error Code:",ip)
+            return None
+    except:
+        print("IP Not Obtained")
+        return None
