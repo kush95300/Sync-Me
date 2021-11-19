@@ -16,14 +16,24 @@ def main():
     None
 
     """
-    project=input("Enter your website name :")
-    path=pro_path+"/"+project
-    os.system("mkdir "+path)
+    #project=input("Enter your website name :")
+    project="Website"
+    path=pro_path+"\\"+project
+    print("Project Detail will save at "+path)
+    project_foldr=sp.getstatusoutput("mkdir "+path)
+    if project_foldr[0]==0:
+        print("Project folder created")
+    else:
+        print("Project folder not created")
+        print(project_foldr)
+
     print("Your website name is :",project)
     try:
         create_key(project+"_key_pair")
+        os.system("move {0} {1}".format(project+"_key_pair_webserver_accesskey.pem",path))
     except:
         print("Key pair already exist")
+    """
     try:
         sg_id=create_sg(sgname=project+"_sg",save_file=project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
         create_file(file_name="sg.txt",file_path=path,data=sg_id,mode="w")
@@ -49,6 +59,7 @@ def main():
             instance=(id,ip)
     url=upload_code(key_pair=project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=os.path.dirname(os.path.abspath(__file__))+"/Webcode/*",destination_path=project+"_code")
     create_file(file_name="url.txt",file_path=path,data=url,mode="w")
+    """
     return 0
 
 pro_path=os.path.dirname(os.path.abspath(__file__))
