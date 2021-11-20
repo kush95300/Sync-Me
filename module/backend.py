@@ -189,7 +189,6 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
         instance_id=instance[1]
         print("Instance Created. Starting in 30 sec")
         sleep(25)
-        print(instance_id)
         instance_ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(instance_id))
         if(instance_ip[0]==0):
             print("Instance ID Obtained")
@@ -237,6 +236,7 @@ def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destina
         print("Destination Directory Not Created")
         print("Error Code:",dest_dir)
         return None
+    print("Uploading Code to Instance. This might take few minutes based on your internet speed.")    
     code=sp.getstatusoutput("scp -o StrictHostKeyChecking=no -i {} -rp {} {}@{}:{}".format(key_pair,source_path,user_name,ip,destination_path))
     if(code[0]==0):
         print("Code Uploaded")

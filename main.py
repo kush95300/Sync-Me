@@ -1,3 +1,4 @@
+import time
 from module.backend import *
 
 # myfunc()
@@ -51,12 +52,20 @@ def main():
     if id==None or id=="":
         print("Instance not exist, creating Instance")
         instance=create_instance(keyname=project+"_key_pair",sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d")
-        print("Instance ID is :",instance[0])
         create_file(file_name="instance_id.txt",file_path=path,data=instance[0],mode="w")
-        print("Instance is booting.Wait 20 sec")
-        sleep(20
-        )
-        print("Instance is running")
+        print("Instance is booting.Please Wait few sec")
+        off=True
+        while off==True:
+            instance_status=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} ec2-user@{} hostname".format(path+"\\"+project+"_key_pair_webserver_accesskey.pem",instance[1]))
+            if instance_status[0]==0:
+                print("Instance is up and running")
+                off=False
+            else:
+                print("Instance is not up. Rechecking in 5 sec")
+                time.sleep(5)
+                print(instance_status)
+        print("Instance is up and running")
+        print("Instance ID is :",instance[0])
     else:
         print("Instance already exist")
         print("Instance ID is :",id)
@@ -75,7 +84,8 @@ def main():
         create_file(file_name=project+"_url.txt",file_path=path,data=url,mode="w")
         dns_url=get_instance_dns_name(instance[0])
         create_file(file_name=project+"_dns_url.txt",file_path=path,data=dns_url,mode="w")
-        create_file(file_name=project+"_detail.txt",file_path=path,data="Website DNS Url :"+url+"\n",mode="a")
+        create_file(file_name=project+"_detail.txt",file_path=path,data="Website DNS Url :"+dns_url+"\n",mode="a")
+        create_file(file_name=project+"_detail.txt",file_path=path,data="Website IP Url :"+url+"\n",mode="a")
     else:
         print("Website already hosted")
         url=get_url
@@ -87,4 +97,3 @@ def main():
 # get absolute path of current file
 pro_path=os.path.dirname(os.path.abspath(__file__))
 main()
-
