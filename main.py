@@ -1,14 +1,17 @@
 import time
 from module.backend import *
 
-# create new project function
-def create_project():
+# Functions
+
+# create new Website function
+def create_website(path,website_name=None,aws_region="ap-south-1",i_type="t2.micro"):
     """
     Description:
-    Main function
+    Create new website
 
     Input:
-    None
+    website_name : name of website
+    path : path of project folder (where detail file will be saved)
 
     Output:
     None
@@ -17,17 +20,9 @@ def create_project():
     None
 
     """
-    project=input("Enter your website name :")
-    #project="Website_name"
-    path=pro_path+"\\"+project
-    print("Project Detail will save at "+path)
-    project_foldr=sp.getstatusoutput("mkdir "+path)
-    if project_foldr[0]==0:
-        print("Project folder created")
-    else:
-        print("Project folder not created")
-        print(project_foldr)
-    print("Your website name is :",project)
+    project = website_name
+    if aws_region == "" or aws_region == None:
+        aws_region = "ap-south-1"
     try:
         key=create_key(project+"_key_pair")
         if key:
@@ -41,6 +36,8 @@ def create_project():
     if sg_id==None or sg_id=="":
         print("Sg not exist, creating SG")
         sg_id=create_sg(sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
+        if sg_id == None:
+            return ValueError
         create_file(file_name=project+"_sg.txt",file_path=path,data=sg_id,mode="w")
         create_sg_rule(sg_id,80,"tcp")
         create_sg_rule(sg_id,22,"tcp")
@@ -51,7 +48,20 @@ def create_project():
     id=get_data_from_file(file_name="instance_id.txt",file_path=path,mode="r")
     if id==None or id=="":
         print("Instance not exist, creating Instance")
-        instance=create_instance(keyname=project+"_key_pair",sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d")
+        print("Fetching Latest AMI ID")
+        ami_id=sp.getstatusoutput("aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --region {}  --query Parameters[0].Value --output text".format(aws_region))
+        if ami_id[0]==0:
+            print("AMI ID is :",ami_id[1])
+            print("AMI ID obtained")
+            
+        else:
+            print("AMI ID not obtained. Using Default AMI")
+            if(aws_region == "ap-south-1"):
+                ami_id="ami-0f1fb91a596abf28d"
+            else:
+                ami_id="ami-04ad2567c9e3d7893"
+            
+        instance=create_instance(keyname=project+"_key_pair",image_id=ami_id[1],sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,instance_type=i_type)
         create_file(file_name="instance_id.txt",file_path=path,data=instance[0],mode="w")
         print("Instance is booting.Please Wait few sec")
         off=True
@@ -94,6 +104,85 @@ def create_project():
 
     return 0
 
+# create new project function
+def create_project():
+    """
+    Description:
+    Create new project
+
+    Input:
+    None
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    project=input("Enter your project name :")
+    #project="project_name"
+    path=pro_path+"\\"+project
+    print("Project Detail will save at "+path)
+    project_foldr=sp.getstatusoutput("mkdir "+path)
+    if project_foldr[0]==0:
+        print("Project folder created")
+    else:
+        print("Project folder not created")
+        print(project_foldr)
+    print("Your project name is :",project)
+    #aws_region=input("Enter your AWS region :")
+    #aws_access_key_id=input("Enter your AWS access key id :")
+    #aws_secret_access_key=input("Enter your AWS secret access key :")
+    #i_type=input("Enter your instance type :")
+
+    try:
+        print("Creating Website")
+        create_website(website_name=project,path=path)
+        #create_project(project,path,aws_region,aws_access_key_id,aws_secret_access_key,i_type)
+        print("Website created successfully")
+        return 0
+    except:
+        print("Error in creating website")
+        return 1
+    
+
+# delete project function
+def delete_project():
+    """
+    Description:
+    Delete project
+
+    Input:
+    None
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    project=input("Enter your project name :")
+    #project="project_name"
+    print("Your project name is :",project)
+    input_data=input("Are you sure you want to delete this project (y/n) :")
+    if input_data=="y":
+        path=pro_path+"\\"+project
+        print("Deleting Project at "+path)
+        #delete_website(website_name=project,path=path)
+        project_foldr=sp.getstatusoutput("rm -rf "+path)
+        if project_foldr[0]==0:
+            print("Project folder deleted")
+        else:
+            print("Project folder not deleted")
+            print(project_foldr)
+        return 0
+    else:
+        print("Project not deleted")
+        return 1
+
 # get absolute path of current file
 pro_path=os.path.dirname(os.path.abspath(__file__))
-create_project()
+#create_project()
+delete_project()
