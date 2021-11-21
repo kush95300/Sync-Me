@@ -171,12 +171,8 @@ def delete_project():
         path=pro_path+"\\"+project
         print("Deleting Project at "+path)
         #delete_website(website_name=project,path=path)
-        project_foldr=sp.getstatusoutput("rm -rf "+path)
-        if project_foldr[0]==0:
-            print("Project folder deleted")
-        else:
-            print("Project folder not deleted")
-            print(project_foldr)
+        os.system("rmdir /s /Q "+path)
+        print("Project deleted successfully")
         return 0
     else:
         print("Project not deleted")
