@@ -188,8 +188,7 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
     if (instance[0]==0):
         instance_id=instance[1]
         print("Instance Created. Starting in 30 sec")
-        sleep(10)
-        print(instance_id)
+        sleep(25)
         instance_ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(instance_id))
         if(instance_ip[0]==0):
             print("Instance ID Obtained")
@@ -237,6 +236,7 @@ def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destina
         print("Destination Directory Not Created")
         print("Error Code:",dest_dir)
         return None
+    print("Uploading Code to Instance. This might take few minutes based on your internet speed.")    
     code=sp.getstatusoutput("scp -o StrictHostKeyChecking=no -i {} -rp {} {}@{}:{}".format(key_pair,source_path,user_name,ip,destination_path))
     if(code[0]==0):
         print("Code Uploaded")
@@ -356,4 +356,33 @@ def get_instance_ip(id):
             return None
     except:
         print("IP Not Obtained")
+        return None
+
+# get instance dns name
+def get_instance_dns_name(id):
+    """
+    Description:
+    Get instance dns name
+
+    Input:
+    id: instance id
+
+    Output:
+    dns_name: instance dns name
+
+    Message:
+    DNS Name Obtained or Not Obtained
+
+    """
+    try:
+        dns_name=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicDnsName --output text".format(id))
+        if(dns_name[0]==0):
+            print("DNS Name Obtained")
+            return "http://"+dns_name[1]
+        else:
+            print("DNS Name Not Obtained")
+            print("Error Code:",dns_name)
+            return None
+    except:
+        print("DNS Name Not Obtained")
         return None
