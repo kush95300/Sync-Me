@@ -180,5 +180,5 @@ def delete_project():
 
 # get absolute path of current file
 pro_path=os.path.dirname(os.path.abspath(__file__))
-#create_project()
-delete_project()
+create_project()
+#delete_project()
