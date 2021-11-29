@@ -1,5 +1,6 @@
 import time
 from module.backend import *
+from module.frontend import *
 
 # Functions
 
@@ -179,6 +180,12 @@ def delete_project():
         return 1
 
 # get absolute path of current file
-pro_path=os.path.dirname(os.path.abspath(__file__))
-create_project()
+pro_path=os.path.abspath(os.path.dirname(__file__))
+#create_project()
 #delete_project()
+
+
+app = myAPP()
+app.title("Sync Me")
+app.mainloop()
+
