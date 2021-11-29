@@ -65,7 +65,7 @@ class StartPage(tkinter.Frame):
         delete_project=True
         controller.show_frame(ConfigurationPage)
 
-
+# Detail Page
 class DetailPage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent,bg="white")
@@ -101,6 +101,7 @@ class DetailPage(tkinter.Frame):
         self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
         self.console.create_text(50, 50, anchor=NW, text=get_data(file="{}.txt".format(monthchoosen.current)), fill="white", font=(TEXT_FONT, 12, "bold"))     
 
+# Project Page
 class ProjectPage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent,bg="white")
@@ -136,6 +137,7 @@ class ProjectPage(tkinter.Frame):
     def open_upload_folder(self,path):
         os.startfile(path)
 
+# Variable Configuration Page
 class ConfigurationPage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent,bg="white")
@@ -186,7 +188,8 @@ class ConfigurationPage(tkinter.Frame):
             controller.show_frame(StartPage)
         else:
             controller.show_frame(ProjectPage)
-        
+
+# Console Page      
 class ConsolePage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent, background="white")
