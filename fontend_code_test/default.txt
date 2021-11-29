@@ -1,0 +1,5 @@
+Instace ID: default
+Instance Public Ip : x.x.x.x
+Instance Private Ip : x.x.x.x
+Instance DNS Link : http://xyz.com
+Instance Public Ip : http://x.x.x.x

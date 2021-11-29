@@ -26,7 +26,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
+        self.show_frame(DetailPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -78,6 +78,23 @@ class DetailPage(tkinter.Frame):
         
         monthchoosen.place(x = 350, y =100)
         monthchoosen.current()
+        # Label(self, text = "Project Details",font = (TEXT_FONT, 25, "bold"),bg="White",fg="black").place(x=FRAME_WIDTH/2-150,y=190)
+        # self.can = Canvas(self,bg="black",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30).place(x=FRAME_WIDTH/2-200,y=250)
+        # self.can.create_text(self.can,text="Project Name :",font=(TEXT_FONT,15,"bold"),fill="white",anchor="nw",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30,tags="text")
+        self.img = ImageTk.PhotoImage(Image.open("detail-big.jpg"))
+        Label(self, text="",image=self.img,bd=0 ).place(x=50,y=FRAME_HEIGHT/2-130)
+
+        # Frame for the console box
+        self.frame = Frame(self, bg="grey",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30)
+        self.frame.place(x=FRAME_WIDTH/2-200,y=250)
+
+        # Console box
+        self.Label = Label(self, text = "Project Details",font = (TEXT_FONT, 25, "bold"),bg="White",fg="black").place(x=FRAME_WIDTH/2-150,y=190)
+        self.console = Canvas(self.frame,background="black",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30)
+        self.console.place(x=0,y=0)
+        self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file="{}.txt".format(monthchoosen.current)), fill="white", font=(TEXT_FONT, 12, "bold"))
+        
 
         
 
@@ -170,7 +187,7 @@ class ConsolePage(tkinter.Frame):
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=(TEXT_FONT, 20, "bold"))
         
         
-        self.console.create_text(50, 50, anchor=NW, text=self.get_data(file="data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file="data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
         self.refresh()
 
         # Buttons for goto home page
@@ -188,24 +205,30 @@ class ConsolePage(tkinter.Frame):
         else:
             controller.show_frame(StartPage)
 
-    # Get data from file
-    def get_data(self, file):
-        with open(file, "r") as f:
-            data = f.read()
-        return data
     
     # Refresh the console box
     def refresh(self):
         fulloutput=get_full_output()
         self.console.delete(ALL)
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=("comicsansms", 20, "bold"))
-        self.console.create_text(50, 50, anchor=NW, text=self.get_data(file="data.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file="data.txt"), fill="white", font=("comicsansms", 12, "bold"))
         if fulloutput=="False" or fulloutput=="":
             self.after(3000, self.refresh)
         else:
             print("Refreshing Stop. Full Output Done")
             return
     
+# Get data from file
+def get_data( file):
+    try:
+        with open(file, "r") as f:
+            data = f.read()
+    except:
+        data = "Data not found"
+        print(file)            
+    return data
+
+
 # get full output  
 def get_full_output():
     try:
