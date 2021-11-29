@@ -21,7 +21,7 @@ class myAPP(tkinter.Tk):
         self.geometry(GEOMETRY)
         self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
         self.frames = {}
-        for F in (StartPage, PageOne, ConsolePage,ProjectPage,ConfigurationPage):
+        for F in (StartPage, DetailPage, ConsolePage,ProjectPage,ConfigurationPage):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -49,7 +49,7 @@ class StartPage(tkinter.Frame):
         self.image2 = PhotoImage(file="create.png")
         self.image3 = PhotoImage(file="delete.png")    
 
-        b1 = tkinter.Button(self, text="Details of Projects",command=lambda: controller.show_frame(PageOne),image=self.image1, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="light green")
+        b1 = tkinter.Button(self, text="Details of Projects",command=lambda: controller.show_frame(DetailPage),image=self.image1, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="light green")
         b1.grid(row=3, column=2, pady=25,sticky="nsew")
 
         b2 = tkinter.Button(self, text="Create Project",command=lambda: controller.show_frame(ProjectPage) ,image=self.image2, compound=LEFT,padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
@@ -59,7 +59,7 @@ class StartPage(tkinter.Frame):
         b3.grid(row=4, column=4)
 
 
-class PageOne(tkinter.Frame):
+class DetailPage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent)
         label = tkinter.Label(self, text="Page One", font=LARGE_FONT)
@@ -85,7 +85,7 @@ class ProjectPage(tkinter.Frame):
         self.image2 = PhotoImage(file="create.png")
         self.image3 = PhotoImage(file="upload.png")    
 
-        b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(StartPage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
+        b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(ConsolePage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
         b1.grid(row=4, column=2,sticky="nsew")
 
         b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ConfigurationPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
@@ -155,16 +155,19 @@ class ConsolePage(tkinter.Frame):
         self.refresh()
 
         # Buttons for goto home page
-        b1 = Button(self, text="Go to Main Page",command=lambda: self.go_home(controller=controller), padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
+        b1 = Button(self, text="Go to Main Page",command=lambda: self.go_home(controller=controller,detail=False), padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
         b1.grid_configure(row=1, column=0, pady=20)
 
-        b2 = Button(self, text="Go to Detail Page",command=lambda: self.go_home(controller=controller) , padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
+        b2 = Button(self, text="Go to Detail Page",command=lambda: self.go_home(controller=controller,detail=True) , padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
         b2.grid_configure(row=1, column=1, pady=20)
     
     # goto home page
-    def go_home(self,controller):
+    def go_home(self,controller,detail):
         put_full_output(1)
-        controller.show_frame(StartPage)
+        if detail:
+            controller.show_frame(DetailPage)
+        else:
+            controller.show_frame(StartPage)
 
     # Get data from file
     def get_data(self, file):
