@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 import tkinter
+from tkinter.font import BOLD
 from PIL import Image, ImageTk
 import threading
 
@@ -20,11 +21,11 @@ class myAPP(tkinter.Tk):
         self.geometry(GEOMETRY)
         self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
         self.frames = {}
-        for F in (StartPage, PageOne, ConsolePage,ProjectPage):
+        for F in (StartPage, PageOne, ConsolePage,ProjectPage,ConfigurationPage):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
+        self.show_frame(ConfigurationPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -87,7 +88,7 @@ class ProjectPage(tkinter.Frame):
         b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(StartPage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
         b1.grid(row=4, column=2,sticky="nsew")
 
-        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ProjectPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
+        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ConfigurationPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
         b2.grid(row=3, column=0,  pady=25,padx=30,sticky="nsew")
 
         b3 = tkinter.Button(self, text="Upload Website",image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
@@ -97,6 +98,38 @@ class ProjectPage(tkinter.Frame):
     def open_upload_folder(self,path):
         os.startfile(path)
 
+class ConfigurationPage(tkinter.Frame):
+    def __init__(self, parent, controller):
+        tkinter.Frame.__init__(self, parent,bg="white")
+
+        # Back button
+        Button(self, text="Back ", command=lambda: controller.show_frame(ProjectPage)).place(x=10,y=10)
+        
+        # Page Title
+        Label(self, text = 'Website Configuration', font =('Verdana', 35,"bold"),bg="white",fg="blue").pack(side = TOP, pady = 20)
+        
+        # Side Image
+        self.img = ImageTk.PhotoImage(Image.open("setting.png"))
+        Label(self, image=self.img).place( y=100, x=FRAME_WIDTH/2+50)
+
+        # Project Form
+
+        # Project Title Labels
+        label1 = Label(self,text = "Project Name",font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2-200)  
+        label2 = Label(self,text = "AWS Secret Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2-100)
+        label3 = Label(self,text = "AWS Access Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2) 
+        label4 = Label(self,text = "AWS Region",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2+100) 
+                            
+        # Entry Boxes                    
+        label1_input_area = Entry(self,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-160)
+        label2_input_area1 = Entry(self,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
+        label3_input_area2 = Entry(self,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
+        label4_input_area3 = Entry(self,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
+
+        # Submit Button
+        self.sub_img= PhotoImage(file="submit.png")
+        b3 = tkinter.Button(self, text="Upload Website",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),command=lambda: controller.show_frame(ProjectPage), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
+        
 
 class ConsolePage(tkinter.Frame):
     def __init__(self, parent, controller):
