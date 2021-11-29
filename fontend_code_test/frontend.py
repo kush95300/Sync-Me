@@ -1,6 +1,7 @@
 import os
 from tkinter import *
 import tkinter
+from tkinter import ttk
 from tkinter.font import BOLD
 from PIL import Image, ImageTk
 import threading
@@ -61,32 +62,24 @@ class StartPage(tkinter.Frame):
 
 class DetailPage(tkinter.Frame):
     def __init__(self, parent, controller):
-        tkinter.Frame.__init__(self, parent)
-        label = tkinter.Label(self, text="Page One", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
-        button1 = tkinter.Button(self, text="Back to Home",
-                                 command=lambda: controller.show_frame(StartPage))
-        button1.pack()
-        # Label(self, text = "Select Project :",font = ("Times New Roman", 10)).grid(column = 0,row = 5, padx = 10, pady = 25)
-        # n = StringVar()
-        # monthchoosen =tkinter.Combobox(self, width = 27, textvariable = n)
+        tkinter.Frame.__init__(self, parent,bg="white")
         
-        # # Adding combobox drop down list
-        # monthchoosen['values'] = (' January', 
-        #                         ' February',
-        #                         ' March',
-        #                         ' April',
-        #                         ' May',
-        #                         ' June',
-        #                         ' July',
-        #                         ' August',
-        #                         ' September',
-        #                         ' October',
-        #                         ' November',
-        #                         ' December')
+        # Back button
+        self.back_img = ImageTk.PhotoImage(Image.open("back.png"))
+        Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(StartPage)).place(x=10,y=10)
+
+        # Project Details
+        Label(self, text = "Select Project :",font = (TEXT_FONT, 20, "bold"),bg="white").place(x=100,y=100)
+        n = StringVar()
+        monthchoosen =ttk.Combobox(self, width = 27, textvariable = n,font = (TEXT_FONT, 20, "bold"))
         
-        # monthchoosen.place(x = 150, y = 50)
-        # monthchoosen.current()
+        # Adding combobox drop down list
+        monthchoosen['values'] = ("default")
+        
+        monthchoosen.place(x = 350, y =100)
+        monthchoosen.current()
+
+        
 
 class ProjectPage(tkinter.Frame):
     def __init__(self, parent, controller):
@@ -104,7 +97,7 @@ class ProjectPage(tkinter.Frame):
         self.image1 = PhotoImage(file="configure.png")
         self.image2 = PhotoImage(file="create.png")
         self.image3 = PhotoImage(file="upload.png")    
-
+        self.image4 = PhotoImage(file="home.png") 
         b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(ConsolePage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
         b1.grid(row=4, column=2,sticky="nsew")
 
@@ -113,7 +106,12 @@ class ProjectPage(tkinter.Frame):
 
         b3 = tkinter.Button(self, text="Upload Website",image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
         b3.grid(row=3, column=4,sticky="nsew",pady=25,padx=30,)
-    
+
+        # Back button
+        self.back_img = ImageTk.PhotoImage(Image.open("back.png"))
+        Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(StartPage)).place(x=10,y=10)
+        
+
     # open upload folder
     def open_upload_folder(self,path):
         os.startfile(path)
@@ -123,7 +121,8 @@ class ConfigurationPage(tkinter.Frame):
         tkinter.Frame.__init__(self, parent,bg="white")
 
         # Back button
-        Button(self, text="Back ", command=lambda: controller.show_frame(ProjectPage)).place(x=10,y=10)
+        self.back_img = ImageTk.PhotoImage(Image.open("back.png"))
+        Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(ProjectPage)).place(x=10,y=10)
         
         # Page Title
         Label(self, text = 'Website Configuration', font =('Verdana', 35,"bold"),bg="white",fg="blue").pack(side = TOP, pady = 20)
@@ -148,7 +147,7 @@ class ConfigurationPage(tkinter.Frame):
 
         # Submit Button
         self.sub_img= PhotoImage(file="submit.png")
-        b3 = tkinter.Button(self, text="Upload Website",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),command=lambda: controller.show_frame(ProjectPage), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
+        b3 = tkinter.Button(self, text="Upload Variable",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),command=lambda: controller.show_frame(ProjectPage), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
         
 
 class ConsolePage(tkinter.Frame):
