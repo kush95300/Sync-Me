@@ -25,7 +25,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(ConfigurationPage)
+        self.show_frame(StartPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -67,6 +67,26 @@ class DetailPage(tkinter.Frame):
         button1 = tkinter.Button(self, text="Back to Home",
                                  command=lambda: controller.show_frame(StartPage))
         button1.pack()
+        # Label(self, text = "Select Project :",font = ("Times New Roman", 10)).grid(column = 0,row = 5, padx = 10, pady = 25)
+        # n = StringVar()
+        # monthchoosen =tkinter.Combobox(self, width = 27, textvariable = n)
+        
+        # # Adding combobox drop down list
+        # monthchoosen['values'] = (' January', 
+        #                         ' February',
+        #                         ' March',
+        #                         ' April',
+        #                         ' May',
+        #                         ' June',
+        #                         ' July',
+        #                         ' August',
+        #                         ' September',
+        #                         ' October',
+        #                         ' November',
+        #                         ' December')
+        
+        # monthchoosen.place(x = 150, y = 50)
+        # monthchoosen.current()
 
 class ProjectPage(tkinter.Frame):
     def __init__(self, parent, controller):
