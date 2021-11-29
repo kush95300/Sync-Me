@@ -18,6 +18,7 @@ class myAPP(tkinter.Tk):
         tkinter.Tk.__init__(self)
         self.title("Multipage GUI")
         self.geometry(GEOMETRY)
+        self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
         self.frames = {}
         for F in (StartPage, PageOne, ConsolePage,ProjectPage):
             frame = F(self, self)
@@ -83,14 +84,18 @@ class ProjectPage(tkinter.Frame):
         self.image2 = PhotoImage(file="create.png")
         self.image3 = PhotoImage(file="upload.png")    
 
-        b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(PageOne),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="orange")
-        b1.grid(row=4, column=2, pady=15,sticky="nsew")
+        b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(StartPage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
+        b1.grid(row=4, column=2,sticky="nsew")
 
-        b2 = tkinter.Button(self, text="Configure Projects",command=lambda: controller.show_frame(ProjectPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
-        b2.grid(row=3, column=0, padx=40,pady=25)
+        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ProjectPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
+        b2.grid(row=3, column=0,  pady=25,padx=30,sticky="nsew")
 
         b3 = tkinter.Button(self, text="Upload Website",image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
-        b3.grid(row=3, column=4,pady=25)
+        b3.grid(row=3, column=4,sticky="nsew",pady=25,padx=30,)
+    
+    # open upload folder
+    def open_upload_folder(self,path):
+        os.startfile(path)
 
 
 class ConsolePage(tkinter.Frame):
