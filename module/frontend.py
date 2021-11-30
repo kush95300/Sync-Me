@@ -1,10 +1,11 @@
-import os,sys
+import os,sys,shutil
 from tkinter import *
 import tkinter
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter.font import BOLD
 from PIL import Image, ImageTk
+from module.backend import *
 
 PATH =os.path.dirname(sys.modules['__main__'].__file__)
 IMAGE_PATH = "{}/images/".format(PATH)
@@ -15,6 +16,7 @@ FRAME_HEIGHT = 650
 GEOMETRY = "{}x{}".format(FRAME_WIDTH, FRAME_HEIGHT)
 delete_project = False
 ENV_VARS = []
+CODE_Uploaded = False
 
 # Multipage GUI
 class myAPP(tkinter.Tk):
@@ -121,18 +123,51 @@ class ProjectPage(tkinter.Frame):
         self.image2 = PhotoImage(file=IMAGE_PATH+"create.png")
         self.image3 = PhotoImage(file=IMAGE_PATH+"upload.png")    
         self.image4 = PhotoImage(file=IMAGE_PATH+"home.png") 
-        b1 = tkinter.Button(self, text="Create Website",command=lambda: controller.show_frame(ConsolePage),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
+        b1 = tkinter.Button(self, text="Create Website",command=lambda: self.make_website(controller=controller),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
         b1.grid(row=4, column=2,sticky="nsew")
 
-        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ConfigurationPage) ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
+        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ConfigurationPage)  ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
         b2.grid(row=3, column=0,  pady=25,padx=30,sticky="nsew")
 
-        b3 = tkinter.Button(self, text="Upload Website",image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
+        b3 = tkinter.Button(self, text="Upload Website",command=lambda: self.create_project_folder(controller=controller),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
         b3.grid(row=3, column=4,sticky="nsew",pady=25,padx=30,)
 
         # Back button
         self.back_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"back.png"))
         Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(StartPage)).place(x=10,y=10)
+    
+    def create_project_folder(self,controller):
+        global ENV_VARS
+        print(ENV_VARS)
+        if ENV_VARS== [] or ENV_VARS[0]=="" or ENV_VARS[0]==None :
+            messagebox.showinfo("Error", "Please first Configure the Project")
+        else:
+            try:
+                os.mkdir(PATH+"/Projects/{}".format(ENV_VARS[0]))
+                os.mkdir(PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
+            except:
+                pass
+            os.system("start "+PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
+            m = messagebox.askokcancel("Save Code", "Do you want to save the code in the Project Folder?")
+            if m == True:
+                messagebox.showinfo("Success", "Project Created Successfully")
+                global CODE_Uploaded
+                CODE_Uploaded = True
+                create_file(file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded to Local Space but Website Not created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
+            else:
+                shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
+                messagebox.showinfo("Inforamtion", "Project Not Saved. Code Deleted")
+                ENV_VARS = []
+
+    def make_website(self,controller):
+        global CODE_Uploaded
+        if CODE_Uploaded == False:
+            messagebox.showwarning("Error", "Please Upload the Code First")
+        else:
+            create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
+            CODE_Uploaded = False
+            controller.show_frame(ConsolePage)              
+            
         
 
     # open upload folder
@@ -167,9 +202,9 @@ class ConfigurationPage(tkinter.Frame):
         input1 = StringVar() 
         Entry(self,textvariable=input1,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-160)
         input2 = StringVar()
-        Entry(self,textvariable=input2,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
+        Entry(self,show="*",textvariable=input2,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
         input3 = StringVar()
-        Entry(self,textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
+        Entry(self,show="*",textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
         input4 = StringVar()
         Entry(self,textvariable=input4,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
 
@@ -182,12 +217,29 @@ class ConfigurationPage(tkinter.Frame):
     def submit(self,controller,inputs):
         # Get Inputs
         for i in inputs:
-            if i == "":
+            if i == "" or i == None:
                 messagebox.showerror("Error","Please fill all the inputs")
                 return
+       
+       
+
         global ENV_VARS
-        ENV_VARS = inputs
         global delete_project
+        global CODE_Uploaded
+
+        if delete_project == False and CODE_Uploaded == True:
+            messagebox.showwarning("Warning", "First Create Website of Uploaded Code")
+            controller.show_frame(ProjectPage)
+
+        ENV_VARS = inputs
+
+        if os.path.exists(PATH+"/Projects/{}".format(inputs[0])):
+            messagebox.showerror("Error","Project Already Exists")
+            if CODE_Uploaded == False:
+                ENV_VARS = []
+            return
+
+        
         if delete_project == True:
             m=messagebox.askokcancel("Delete Project","Are you sure you want to delete the project?")
             if m == False:
@@ -196,6 +248,9 @@ class ConfigurationPage(tkinter.Frame):
                 delete_project = False
                 controller.show_frame(ConsolePage)
         else:
+            # check aws connectivity
+            messagebox.showinfo("Success","Project Configured Successfully")
+
             controller.show_frame(ProjectPage)
     
     # Back Button Function
