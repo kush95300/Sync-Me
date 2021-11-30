@@ -2,6 +2,7 @@ import os,sys
 from tkinter import *
 import tkinter
 from tkinter import ttk
+from tkinter import messagebox
 from tkinter.font import BOLD
 from PIL import Image, ImageTk
 
@@ -13,6 +14,7 @@ FRAME_WIDTH = 1200
 FRAME_HEIGHT = 650
 GEOMETRY = "{}x{}".format(FRAME_WIDTH, FRAME_HEIGHT)
 delete_project = False
+ENV_VARS = []
 
 # Multipage GUI
 class myAPP(tkinter.Tk):
@@ -162,21 +164,37 @@ class ConfigurationPage(tkinter.Frame):
         label4 = Label(self,text = "AWS Region",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2+100) 
                             
         # Entry Boxes                    
-        label1_input_area = Entry(self,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-160)
-        label2_input_area1 = Entry(self,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
-        label3_input_area2 = Entry(self,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
-        label4_input_area3 = Entry(self,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
+        input1 = StringVar() 
+        Entry(self,textvariable=input1,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-160)
+        input2 = StringVar()
+        Entry(self,textvariable=input2,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
+        input3 = StringVar()
+        Entry(self,textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
+        input4 = StringVar()
+        Entry(self,textvariable=input4,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
 
         # Submit Button
         self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
-        b3 = tkinter.Button(self, text="Upload Variable",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),command=lambda: self.submit(controller), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
+        b3 = tkinter.Button(self, text="Upload Variable",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),
+          command=lambda: self.submit(controller=controller,inputs=[input1.get(),input2.get(),input3.get(),input4.get()]), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
     
     # Submit Button Function
-    def submit(self,controller):
+    def submit(self,controller,inputs):
+        # Get Inputs
+        for i in inputs:
+            if i == "":
+                messagebox.showerror("Error","Please fill all the inputs")
+                return
+        global ENV_VARS
+        ENV_VARS = inputs
         global delete_project
         if delete_project == True:
-            delete_project = False
-            controller.show_frame(ConsolePage)
+            m=messagebox.askokcancel("Delete Project","Are you sure you want to delete the project?")
+            if m == False:
+                return
+            else:
+                delete_project = False
+                controller.show_frame(ConsolePage)
         else:
             controller.show_frame(ProjectPage)
     
@@ -271,6 +289,11 @@ def put_full_output(x):
             f.write("False")
 
 full_output =get_full_output()
+
+# Get ENV VARS
+def get_env_vars():
+    global ENV_VARS
+    return ENV_VARS
 
 
 
