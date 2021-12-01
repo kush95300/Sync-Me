@@ -5,7 +5,7 @@ from time import sleep
 # All Functions are mentioned below
 
 #function to create key pair
-def create_key(keyname):
+def create_key(keyname,profile):
     """
     Description:
     Create key pair
@@ -19,7 +19,7 @@ def create_key(keyname):
     Message:
     Key Pair Created or Not Created
     """
-    key=sp.getstatusoutput("aws ec2 create-key-pair --key-name {0} --query KeyMaterial --output text > {0}_webserver_accesskey.pem".format(keyname))
+    key=sp.getstatusoutput("aws ec2 create-key-pair --profile {1} --key-name {0}  --query KeyMaterial --output text > {0}_webserver_accesskey.pem".format(keyname,profile))
     if(key[0]==0):
         print("Key Created")
         if os.name == 'nt':
@@ -74,7 +74,7 @@ def key_security_mode_windows(user,keyname):
     print("Key Security Mode Set")
 
 #function to create security group
-def create_sg(sgname,description="None",save_file="sg.txt",save_file_mode="a",save=True):
+def create_sg(sgname,profile,description="None",save_file="sg.txt",save_file_mode="a",save=True):
     """
     Description:
     Create Security Group and save security group id in a file
@@ -92,13 +92,15 @@ def create_sg(sgname,description="None",save_file="sg.txt",save_file_mode="a",sa
     message:
     Security Group Created or Not Created
     """
+    # creating security group
     if(description=="None"):
-        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {0} ".format(sgname))
+        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {0} --profile {1}".format(sgname,profile))
     else:
-        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {1} ".format(sgname,description))
+        sg=sp.getstatusoutput("aws ec2 create-security-group --group-name {0} --description {1} --profile {2} ".format(sgname,description,profile))
     if(sg[0]==0):
+        # Security Group Created
         print("Security Group Created")
-        sg_id=sp.getstatusoutput("aws ec2 describe-security-groups --group-names {} --query SecurityGroups[0].GroupId --output text".format(sgname))
+        sg_id=sp.getstatusoutput("aws ec2 describe-security-groups --group-names {0} --profile {1} --query SecurityGroups[0].GroupId --output text".format(sgname,profile))
         if(sg_id[0]==0):
             print("Security Group ID Obtained")
             file=open(save_file,save_file_mode)
@@ -115,7 +117,7 @@ def create_sg(sgname,description="None",save_file="sg.txt",save_file_mode="a",sa
         return None
 
 #function to create security group rule
-def create_sg_rule(sgname,port,protocol,type="ingress",cidr="0.0.0.0/0",source_sg=None):
+def create_sg_rule(sgname,profile,port,protocol,type="ingress",cidr="0.0.0.0/0",source_sg=None):
     """
     Input:
 
@@ -147,9 +149,9 @@ def create_sg_rule(sgname,port,protocol,type="ingress",cidr="0.0.0.0/0",source_s
     
     """
     if(source_sg==None):
-        sg_rule=sp.getstatusoutput("aws ec2 authorize-security-group-ingress --group-id {0} --protocol {1} --port {2} --cidr {3}".format(sgname,protocol,port,cidr))
+        sg_rule=sp.getstatusoutput("aws ec2 authorize-security-group-ingress --profile {4} --group-id {0} --protocol {1} --port {2} --cidr {3}".format(sgname,protocol,port,cidr,profile))
     else:
-        sg_rule=sp.getstatusoutput("aws ec2 authorize-security-group-ingress --group-id {0} --protocol {1} --port {2} --source-group {3}".format(sgname,protocol,port,source_sg))
+        sg_rule=sp.getstatusoutput("aws ec2 authorize-security-group-ingress --profile {4} --group-id {0} --protocol {1} --port {2} --source-group {3}".format(sgname,protocol,port,source_sg,profile))
     if(sg_rule[0]==0):
         print("Security Group Rule Created")
     else:
@@ -158,7 +160,7 @@ def create_sg_rule(sgname,port,protocol,type="ingress",cidr="0.0.0.0/0",source_s
 
 
 #function to create instance
-def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d",security_group_ids=None,save_file="instance.txt",save_file_mode="a",save=True):
+def create_instance(profile,keyname,sgname=None,instance_type="t2.micro",image_id="ami-0f1fb91a596abf28d",security_group_ids=None,save_file="instance.txt",save_file_mode="a",save=True):
     """
     Description:
     Create Instance and save instance id in a file
@@ -182,14 +184,14 @@ def create_instance(keyname,sgname=None,instance_type="t2.micro",image_id="ami-0
 
     """
     if( sgname==None):
-        instance=sp.getstatusoutput("aws ec2 run-instances --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-group-ids {3} --query Instances[].InstanceId  --output text".format(image_id,instance_type,keyname,security_group_ids))
+        instance=sp.getstatusoutput("aws ec2 run-instances  --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-group-ids {3} --query Instances[].InstanceId  --output text  --profile {4}".format(image_id,instance_type,keyname,security_group_ids,profile))
     else:
-        instance=sp.getstatusoutput("aws ec2 run-instances --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-groups {3}   --query Instances[].InstanceId --output text".format(image_id,instance_type,keyname,sgname))
+        instance=sp.getstatusoutput("aws ec2 run-instances  --image-id {0} --count 1 --instance-type {1} --key-name {2} --security-groups {3}   --query Instances[].InstanceId --output text --profile {4}".format(image_id,instance_type,keyname,sgname,profile))
     if (instance[0]==0):
         instance_id=instance[1]
         print("Instance Created. Starting in 30 sec")
         sleep(25)
-        instance_ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(instance_id))
+        instance_ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {0} --profile {1} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(instance_id,profile))
         if(instance_ip[0]==0):
             print("Instance ID Obtained")
             file=open(save_file,save_file_mode)
@@ -292,17 +294,21 @@ def create_file(file_name,data,file_path,mode="w"):
     File Created or Not Created
 
     """
-    try:
-        file=open(file_path+"/"+file_name,mode)
-        file.write(data)
-        file.close()
-        print("File Created")
-    except:
-        print("File Not Created")
-    
-    # getter function
+    # try:
+    #     file=open(file_path+"/"+file_name,mode)
+    #     file.write(data)
+    #     file.close()
+    #     print("File Created")
+    # except:
+    #     print("File Not Created")
 
-    # To get data from local file
+    file=open(file_path+"/"+file_name,mode)
+    file.write(data)
+    file.close()
+    
+# getter function
+
+# To get data from local file
 def get_data_from_file(file_name,file_path=os.path.dirname(os.path.abspath(__file__)),mode="r"):
     """
     Description:
@@ -359,7 +365,7 @@ def get_instance_ip(id):
         return None
 
 # get instance dns name
-def get_instance_dns_name(id):
+def get_instance_dns_name(id,profile):
     """
     Description:
     Get instance dns name
@@ -375,7 +381,7 @@ def get_instance_dns_name(id):
 
     """
     try:
-        dns_name=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicDnsName --output text".format(id))
+        dns_name=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {0} --query  Reservations[0].Instances[0].PublicDnsName --output text --profile {1}".format(id,profile))
         if(dns_name[0]==0):
             print("DNS Name Obtained")
             return "http://"+dns_name[1]
@@ -390,7 +396,7 @@ def get_instance_dns_name(id):
 # Functions
 
 # create new Website function
-def create_website(path,website_name=None,aws_region="ap-south-1",i_type="t2.micro"):
+def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws_region="ap-south-1",i_type="t2.micro"):
     """
     Description:
     Create new website
@@ -407,57 +413,86 @@ def create_website(path,website_name=None,aws_region="ap-south-1",i_type="t2.mic
 
     """
     project = website_name
-    if aws_region == "" or aws_region == None:
-        aws_region = "ap-south-1"
+    # Create Key Pair
     try:
-        key=create_key(project+"_key_pair")
+        key=create_key(project+"_key_pair",profile=website_name)
         if key:
+            # Key Pair Created
             os.system("move {0} {1}".format(project+"_key_pair_webserver_accesskey.pem",path))
+            create_file(file_path=path, file_name="output_data.txt",data="Key Created Successfully. \nKey Mode Changed\nKey Saved Locally\n",mode="a")
         else:
+            # Key Pair Not Created
             os.system("del {0}".format(project+"_key_pair_webserver_accesskey.pem"))
+            create_file(file_path=path, file_name="output_data.txt",data="Key Not created. Something Went wrong\n",mode="a")
+            return False
     except:
+        # Key Pair already exists
         print("Key pair already exist")
+        create_file(file_path=path, file_name="output_data.txt",data="Key Already Exists\n",mode="a")
+
+    # Check if Security Group Exists
     print("SG already exist or not")
+    create_file(file_path=path, file_name="output_data.txt",data="Checking  Security Group Exists or not\n",mode="a")
+    
+    # Get Security Group Id
     sg_id=get_data_from_file(file_name=project+"_sg.txt",mode="r",file_path=path)
     if sg_id==None or sg_id=="":
+        # Security Group Not Exists
         print("Sg not exist, creating SG")
-        sg_id=create_sg(sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
+        create_file(file_path=path, file_name="output_data.txt",data="Security Group Not Exists. Creating Security Group\n",mode="a")
+        
+        # Creating Security Group
+        sg_id=create_sg(profile=website_name,sgname=project+"_sg",save_file=path+"/detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
         if sg_id == None:
-            return ValueError
+            # Security Group Not Created
+            create_file(file_path=path, file_name="output_data.txt",data="SG Not created. Something Went wrong\n",mode="a")
+            return False
         create_file(file_name=project+"_sg.txt",file_path=path,data=sg_id,mode="w")
-        create_sg_rule(sg_id,80,"tcp")
-        create_sg_rule(sg_id,22,"tcp")
+
+        # Security Group rules Created
+        create_sg_rule(sgname= sg_id,port= 80,protocol="tcp",profile=website_name)
+        create_sg_rule(sgname= sg_id,protocol= "tcp",port= 22,profile=website_name)
+        create_file(file_path=path, file_name="output_data.txt",data="Security Group and its Rules added successfully\n",mode="a")
+        
     else:
+        # Security Group Exists
         print("Sg already exist. Getting id")
         print("Sg id is :",sg_id)
+        create_file(file_path=path, file_name="output_data.txt",data="Security Group already Exists\n",mode="a")
+        
+    # Check instance already exists or not
     print("Checking Instance already exists or not")
+    create_file(file_path=path, file_name="output_data.txt",data="Checking Instance already exists or not\n",mode="a")
     id=get_data_from_file(file_name="instance_id.txt",file_path=path,mode="r")
     if id==None or id=="":
         print("Instance not exist, creating Instance")
         print("Fetching Latest AMI ID")
-        ami_id=sp.getstatusoutput("aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --region {}  --query Parameters[0].Value --output text".format(aws_region))
+        create_file(file_path=path, file_name="output_data.txt",data="Instance not exist, creating Instance\nFetching Latest AMI ID\n",mode="a")
+        ami_id=sp.getstatusoutput("aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --region {0} --profile {1}  --query Parameters[0].Value --output text".format(aws_region,website_name))
         if ami_id[0]==0:
             print("AMI ID is :",ami_id[1])
             print("AMI ID obtained")
             
         else:
             print("AMI ID not obtained. Using Default AMI")
+            print(aws_region)
             if(aws_region == "ap-south-1"):
-                ami_id="ami-0f1fb91a596abf28d"
+                ami_id='ami-0f1fb91a596abf28d'
             else:
-                ami_id="ami-04ad2567c9e3d7893"
-            
-        instance=create_instance(keyname=project+"_key_pair",image_id=ami_id[1],sgname=project+"_sg",save_file=path+"\\"+project+"_detail.txt",save_file_mode="a",save=True,instance_type=i_type)
+                ami_id='ami-04ad2567c9e3d7893'
+        print("AMI ID is :",ami_id) 
+        instance=create_instance(profile=website_name,keyname=project+"_key_pair",image_id=ami_id[1],sgname=project+"_sg",save_file=path+"/detail.txt",save_file_mode="a",save=True,instance_type=i_type)
         create_file(file_name="instance_id.txt",file_path=path,data=instance[0],mode="w")
         print("Instance is booting.Please Wait few sec")
         off=True
         while off==True:
-            instance_status=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} ec2-user@{} hostname".format(path+"\\"+project+"_key_pair_webserver_accesskey.pem",instance[1]))
+            instance_status=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} ec2-user@{} hostname".format(path+"/"+project+"_key_pair_webserver_accesskey.pem",instance[1]))
             if instance_status[0]==0:
                 print("Instance is up and running")
                 off=False
             else:
                 print("Instance is not up. Rechecking in 5 sec")
+                import time
                 time.sleep(5)
                 print(instance_status)
         print("Instance is up and running")
@@ -476,12 +511,12 @@ def create_website(path,website_name=None,aws_region="ap-south-1",i_type="t2.mic
     get_url=get_data_from_file(file_name=project+"_url.txt",file_path=path,mode="r")
     if get_url==None or get_url=="":
         print("Website not hosted. Creating webserver")
-        url=upload_code(key_pair=path+"\\"+project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=os.path.dirname(os.path.abspath(__file__))+"/Webcode/*",destination_path=project+"_code")
+        url=upload_code(key_pair=path+"/"+project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=path+"/Code/*",destination_path=project+"_code")
         create_file(file_name=project+"_url.txt",file_path=path,data=url,mode="w")
         dns_url=get_instance_dns_name(instance[0])
         create_file(file_name=project+"_dns_url.txt",file_path=path,data=dns_url,mode="w")
-        create_file(file_name=project+"_detail.txt",file_path=path,data="Website DNS Url :"+dns_url+"\n",mode="a")
-        create_file(file_name=project+"_detail.txt",file_path=path,data="Website IP Url :"+url+"\n",mode="a")
+        create_file(file_name="detail.txt",file_path=path,data="Website DNS Url :"+dns_url+"\n",mode="a")
+        create_file(file_name="detail.txt",file_path=path,data="Website IP Url :"+url+"\n",mode="a")
     else:
         print("Website already hosted")
         url=get_url
@@ -490,48 +525,7 @@ def create_website(path,website_name=None,aws_region="ap-south-1",i_type="t2.mic
 
     return 0
 
-# create new project function
-def create_project():
-    """
-    Description:
-    Create new project
-
-    Input:
-    None
-
-    Output:
-    None
-
-    Message:
-    None
-
-    """
-    project=input("Enter your project name :")
-    #project="project_name"
-    path=pro_path+"\\"+project
-    print("Project Detail will save at "+path)
-    project_foldr=sp.getstatusoutput("mkdir "+path)
-    if project_foldr[0]==0:
-        print("Project folder created")
-    else:
-        print("Project folder not created")
-        print(project_foldr)
-    print("Your project name is :",project)
-    #aws_region=input("Enter your AWS region :")
-    #aws_access_key_id=input("Enter your AWS access key id :")
-    #aws_secret_access_key=input("Enter your AWS secret access key :")
-    #i_type=input("Enter your instance type :")
-
-    try:
-        print("Creating Website")
-        create_website(website_name=project,path=path)
-        #create_project(project,path,aws_region,aws_access_key_id,aws_secret_access_key,i_type)
-        print("Website created successfully")
-        return 0
-    except:
-        print("Error in creating website")
-        return 1
-    
+ 
 
 # delete project function
 def delete_project():
@@ -554,7 +548,7 @@ def delete_project():
     print("Your project name is :",project)
     input_data=input("Are you sure you want to delete this project (y/n) :")
     if input_data=="y":
-        path=pro_path+"\\"+project
+        path=pro_path+"/"+project
         print("Deleting Project at "+path)
         #delete_website(website_name=project,path=path)
         os.system("rmdir /s /Q "+path)

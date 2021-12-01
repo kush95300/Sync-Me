@@ -328,7 +328,7 @@ class ConsolePage(tkinter.Frame):
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=(TEXT_FONT, 20, "bold"))
         
         
-        self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"\\dependencies\\"+"data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/dependencies/data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
         self.refresh()
 
         # Buttons for goto home page
@@ -349,10 +349,12 @@ class ConsolePage(tkinter.Frame):
     
     # Refresh the console box
     def refresh(self):
+        global ENV_VARS
         fulloutput=get_full_output()
         self.console.delete(ALL)
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=("comicsansms", 20, "bold"))
-        self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"\\dependencies\\"+"data.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        try:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        except:pass
         if fulloutput=="False" or fulloutput=="":
             self.after(3000, self.refresh)
         else:
@@ -400,20 +402,29 @@ def create_website_thread():
     print("Starting Website Thread")
     global CODE_Uploaded
     global ENV_VARS
+
+    # Create output file
+    create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_data.txt",data="",mode="w")
+
+    # Create the project Website
+    create_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
+
+    # Update the code uploaded status
     create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
     
-    import time
-    time.sleep(5)
+    # import time
+    # time.sleep(5)
     
+    # Notify the user that the project is created
     messagebox.showinfo("Success","Project Created Successfully")
+
+    # Removing the project environment variables and credentials
     CODE_Uploaded = False
+    status =set_aws_credentials_empty(profile_name=ENV_VARS[0])
+    if status:
+        print("Credentials Removed")
     ENV_VARS = []
     print("Thread Stopped")
-
-         
-
-
-
 
 
 
