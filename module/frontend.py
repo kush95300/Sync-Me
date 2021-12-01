@@ -1,5 +1,6 @@
 import os,sys,shutil
 from subprocess import check_call
+import threading
 from time import time
 from tkinter import *
 import tkinter
@@ -187,13 +188,13 @@ class ProjectPage(tkinter.Frame):
 
     def make_website(self,controller):
         global CODE_Uploaded
-        global ENV_VARS
+        
         if CODE_Uploaded == False:
             messagebox.showwarning("Error", "Please Upload the Code First")
         else:
-            create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
-            CODE_Uploaded = False
-            ENV_VARS = []
+            thread = threading.Thread(target=create_website_thread, args=())
+            thread.start()
+            messagebox.showinfo("Info", "Website Creation Started, It may take 2-5 minutes to setup website")
             controller.show_frame(ConsolePage)              
             
         
@@ -394,7 +395,20 @@ def get_env_vars():
     global ENV_VARS
     return ENV_VARS
 
-
+# create the project thread
+def create_website_thread():
+    print("Starting Website Thread")
+    global CODE_Uploaded
+    global ENV_VARS
+    create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
+    
+    import time
+    time.sleep(5)
+    
+    messagebox.showinfo("Success","Project Created Successfully")
+    CODE_Uploaded = False
+    ENV_VARS = []
+    print("Thread Stopped")
 
          
 
