@@ -1,4 +1,6 @@
 import os,sys,shutil
+from subprocess import check_call
+from time import time
 from tkinter import *
 import tkinter
 from tkinter import ttk
@@ -18,11 +20,24 @@ delete_project = False
 ENV_VARS = []
 CODE_Uploaded = False
 
+
 # Multipage GUI
 class myAPP(tkinter.Tk):
+    def __del__(self):
+        # cred = get_aws_credentials()
+        # if cred == [] or cred == None or cred == "Credentials not exist" or cred == ("", "", ""):
+        #     cre = set_aws_credentials_empty()
+        #     shutil.rmtree("~/.aws/creditentials")
+        # else:
+        #     cre= set_aws_credentials(aws_access_key_id=cred[0], aws_secret_access_key=cred[1],aws_region=cred[2])
+
+        # print("CRED :{}".format(cred))
+        # print("Now Cred = {}".format(get_aws_credentials()))
+        print("Destructor called")
     
     def __init__(self):
         tkinter.Tk.__init__(self)
+        
         self.title("Multipage GUI")
         self.geometry(GEOMETRY)
         self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
@@ -137,35 +152,48 @@ class ProjectPage(tkinter.Frame):
         Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(StartPage)).place(x=10,y=10)
     
     def create_project_folder(self,controller):
+        # Checking Project Variable configuration
         global ENV_VARS
         print(ENV_VARS)
         if ENV_VARS== [] or ENV_VARS[0]=="" or ENV_VARS[0]==None :
             messagebox.showinfo("Error", "Please first Configure the Project")
         else:
+            # Update code
+            global CODE_Uploaded
+            if CODE_Uploaded == True:
+                update = messagebox.askyesno("Update", "Do you want to update the code?")
+                if update == False:
+                    return
+
+            # creating Project folders
             try:
                 os.mkdir(PATH+"/Projects/{}".format(ENV_VARS[0]))
                 os.mkdir(PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
             except:
                 pass
             os.system("start "+PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
-            m = messagebox.askokcancel("Save Code", "Do you want to save the code in the Project Folder?")
+            m = messagebox.askokcancel("Are you done with Code?", "Do you want to save the code in the Project Folder?")
             if m == True:
-                messagebox.showinfo("Success", "Project Created Successfully")
-                global CODE_Uploaded
+                messagebox.showinfo("Success", "Code Uploaded Successfully (Locally)")
                 CODE_Uploaded = True
                 create_file(file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded to Local Space but Website Not created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
             else:
+                if CODE_Uploaded == True:
+                    return
+                # Delete Project Folder
                 shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
                 messagebox.showinfo("Inforamtion", "Project Not Saved. Code Deleted")
                 ENV_VARS = []
 
     def make_website(self,controller):
         global CODE_Uploaded
+        global ENV_VARS
         if CODE_Uploaded == False:
             messagebox.showwarning("Error", "Please Upload the Code First")
         else:
             create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
             CODE_Uploaded = False
+            ENV_VARS = []
             controller.show_frame(ConsolePage)              
             
         
@@ -215,42 +243,58 @@ class ConfigurationPage(tkinter.Frame):
     
     # Submit Button Function
     def submit(self,controller,inputs):
-        # Get Inputs
+        global ENV_VARS
+
+        # Checking inputs are empty or not 
         for i in inputs:
             if i == "" or i == None:
                 messagebox.showerror("Error","Please fill all the inputs")
                 return
-       
-       
 
-        global ENV_VARS
+        # Warn user to create website as webcode already exists
         global delete_project
         global CODE_Uploaded
-
         if delete_project == False and CODE_Uploaded == True:
             messagebox.showwarning("Warning", "First Create Website of Uploaded Code")
-            controller.show_frame(ProjectPage)
-
-        ENV_VARS = inputs
-
+            choice = messagebox.askyesno("Warning", "Do you still want to create the Project? \n\n Current Project Code will locally saved. You can set that up again from detail page. ")
+            if choice == True:
+                pass
+            else:
+                controller.show_frame(ProjectPage)
+        
+        # Checking Project already exists or not
         if os.path.exists(PATH+"/Projects/{}".format(inputs[0])):
-            messagebox.showerror("Error","Project Already Exists")
-            if CODE_Uploaded == False:
-                ENV_VARS = []
+            messagebox.showerror("Error","Project Already Exists. Choose other name.")
             return
 
-        
+        # Checking AWS CLI is installed or not
+        x = test_aws()
+        if x == False:
+            messagebox.showerror("ERROR","Please Install AWS CLI \n\n Refer the link:\n  https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")
+            return
+
+        # Checking AWS Credentials and  Region is valid or not
+        y = test_aws_credentials(profile=inputs[0],aws_access_key_id= inputs[1],aws_secret_access_key= inputs[2],aws_region= inputs[3])
+        if y == False:
+            messagebox.showerror("Credentials Error","Please Enter the correct AWS Credentials")
+            return
+
+
+        # set the global variable
+        ENV_VARS = inputs
+
         if delete_project == True:
+            # Confirm to delete the project
             m=messagebox.askokcancel("Delete Project","Are you sure you want to delete the project?")
             if m == False:
                 return
             else:
+                # Delete the project and route to Console Page
                 delete_project = False
                 controller.show_frame(ConsolePage)
         else:
-            # check aws connectivity
-            messagebox.showinfo("Success","Project Configured Successfully")
-
+            # Route to Project Page
+            messagebox.showinfo("Success","Project Variables Configured Successfully")
             controller.show_frame(ProjectPage)
     
     # Back Button Function
@@ -358,3 +402,11 @@ def get_env_vars():
 
 
 
+
+# Create APP
+def create_app():
+    # img = Image.open(PATH+"\\images\\"+"logo.png")
+    app = myAPP()
+    app.iconbitmap(PATH+"\\images\\"+"logo.ico")
+    app.title("Sync Me")
+    app.mainloop()

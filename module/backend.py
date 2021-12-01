@@ -569,3 +569,95 @@ pro_path=os.path.abspath(os.path.dirname(__file__))
 #create_project()
 #delete_project()
 
+# Test AWS 
+def test_aws():
+    """
+    Description:
+    Test AWS
+
+    Input:
+    None
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    aws = sp.getstatusoutput("aws --version")
+    print(aws)
+    if aws[0]!=0:
+        print("AWS not installed")
+        return  False
+    else:
+        print("AWS installed")
+        return True
+
+# Set AWS Credentials
+def set_aws_credentials(profile,aws_access_key_id,aws_secret_access_key,aws_region):
+    aws_set_accesskey=sp.getstatusoutput("aws configure set aws_access_key_id {} --profile={}".format(aws_access_key_id,profile))
+    aws_set_secretkey=sp.getstatusoutput("aws configure set aws_secret_access_key {} --profile={}".format(aws_secret_access_key,profile))
+    aws_set_region=sp.getstatusoutput("aws configure set region {} --profile={}".format(aws_region,profile))
+    if aws_set_accesskey[0]==0 and aws_set_secretkey[0]==0 and aws_set_region[0]==0:  
+        return True
+    else:
+        return False
+
+# Get AWS Credentials
+def get_aws_credentials(profile_name):
+    aws_access_key_id=sp.getstatusoutput("aws configure get aws_access_key_id --profile={}".format(profile_name))
+    aws_secret_access_key=sp.getstatusoutput("aws configure get aws_secret_access_key --profile={}".format(profile_name))
+    aws_region=sp.getstatusoutput("aws configure get region --profile={}".format(profile_name))
+    if aws_access_key_id[0]==0 and aws_secret_access_key[0]==0 and aws_region[0]==0:
+        return aws_access_key_id[1],aws_secret_access_key[1],aws_region[1]
+    else:
+        return "","",""
+
+# Set AWS Credentials Empty
+def set_aws_credentials_empty(profile_name):
+    aws_set_accesskey=sp.getstatusoutput("aws configure set aws_access_key_id '' --profile={}".format(profile_name))
+    aws_set_secretkey=sp.getstatusoutput("aws configure set aws_secret_access_key '' --profile={}".format(profile_name))
+    aws_set_region=sp.getstatusoutput("aws configure set region '' --profile={}".format(profile_name))
+    if aws_set_accesskey[0]==0 and aws_set_secretkey[0]==0 and aws_set_region[0]==0:  
+        return True
+    else:
+        return False
+
+# Test AWS credentials
+def test_aws_credentials(profile,aws_access_key_id,aws_secret_access_key,aws_region):
+    """
+    Description:
+    Test AWS credentials
+
+    Input:
+    None
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    # Set Credentials temporarily
+    set =set_aws_credentials(profile=profile,aws_access_key_id=aws_access_key_id,aws_secret_access_key=aws_secret_access_key,aws_region=aws_region)
+    if set==True:
+        print("AWS Credentials set successfully")
+    else:
+        print("AWS Credentials not set")
+        
+    # Test Credentials
+    aws_credentials = sp.getstatusoutput("aws ec2 describe-vpcs --profile={}".format(profile))
+    if aws_credentials[0]!=0:
+        print("Error in AWS credentials")
+        status =set_aws_credentials_empty(profile_name=profile)
+        if status==True:
+            print("AWS credentials set to empty")
+        else:
+            print("AWS credentials not set to empty")
+        return False
+    else:
+        print("AWS credentials working")
+        print(aws_credentials)
+        return True
