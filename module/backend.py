@@ -246,7 +246,7 @@ def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destina
         print("Code Not Uploaded")
         print("Error Code:",code)
         return None
-    webserver=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} sudo yum install httpd -y ".format(key_pair,user_name,ip))
+    webserver=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} {}@{} sudo yum install httpd php -y ".format(key_pair,user_name,ip))
     if(webserver[0]==0):
         print("Web Server Installed")   
     else:
@@ -336,7 +336,7 @@ def get_data_from_file(file_name,file_path=os.path.dirname(os.path.abspath(__fil
         return None
 
 # get instance ip 
-def get_instance_ip(id):
+def get_instance_ip(id,profile):
     """
     Description:
     Get instance ip
@@ -352,7 +352,7 @@ def get_instance_ip(id):
 
     """
     try:
-        ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {} --query  Reservations[0].Instances[0].PublicIpAddress --output text".format(id))
+        ip=sp.getstatusoutput("aws ec2 describe-instances  --instance-ids {0} --query  Reservations[0].Instances[0].PublicIpAddress --output text --profile {1}".format(id,profile))
         if(ip[0]==0):
             print("IP Obtained")
             return ip[1]
@@ -419,55 +419,56 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
         if key:
             # Key Pair Created
             os.system("move {0} {1}".format(project+"_key_pair_webserver_accesskey.pem",path))
-            create_file(file_path=path, file_name="output_data.txt",data="Key Created Successfully. \nKey Mode Changed\nKey Saved Locally\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Key Created Successfully. [5% done] \n==> Key Mode Changed. [10% done]\n==> Key Saved Locally [15% done]\n",mode="a")
         else:
             # Key Pair Not Created
             os.system("del {0}".format(project+"_key_pair_webserver_accesskey.pem"))
-            create_file(file_path=path, file_name="output_data.txt",data="Key Not created. Something Went wrong\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="Key Not created. Something Went wrong [ Failed ]\n",mode="a")
             return False
     except:
         # Key Pair already exists
         print("Key pair already exist")
-        create_file(file_path=path, file_name="output_data.txt",data="Key Already Exists\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Key Already Exists [15% done]\n",mode="a")
 
     # Check if Security Group Exists
     print("SG already exist or not")
-    create_file(file_path=path, file_name="output_data.txt",data="Checking  Security Group Exists or not\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\nChecking  Security Group Exists or not\n",mode="a")
     
     # Get Security Group Id
     sg_id=get_data_from_file(file_name=project+"_sg.txt",mode="r",file_path=path)
     if sg_id==None or sg_id=="":
         # Security Group Not Exists
         print("Sg not exist, creating SG")
-        create_file(file_path=path, file_name="output_data.txt",data="Security Group Not Exists. Creating Security Group\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="\n==> Security Group Not Exists. Creating Security Group\n",mode="a")
         
         # Creating Security Group
         sg_id=create_sg(profile=website_name,sgname=project+"_sg",save_file=path+"/detail.txt",save_file_mode="a",save=True,description="Sg_for_"+project)
         if sg_id == None:
             # Security Group Not Created
-            create_file(file_path=path, file_name="output_data.txt",data="SG Not created. Something Went wrong\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="xxxx SG Not created. Something Went wrong [Failed]\n",mode="a")
             return False
         create_file(file_name=project+"_sg.txt",file_path=path,data=sg_id,mode="w")
 
         # Security Group rules Created
         create_sg_rule(sgname= sg_id,port= 80,protocol="tcp",profile=website_name)
         create_sg_rule(sgname= sg_id,protocol= "tcp",port= 22,profile=website_name)
-        create_file(file_path=path, file_name="output_data.txt",data="Security Group and its Rules added successfully\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Security Group and its Rules added successfully. [30 % done]\n",mode="a")
         
     else:
         # Security Group Exists
         print("Sg already exist. Getting id")
         print("Sg id is :",sg_id)
-        create_file(file_path=path, file_name="output_data.txt",data="Security Group already Exists\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Security Group already Exists. [30 % done]\n",mode="a")
         
     # Check instance already exists or not
     print("Checking Instance already exists or not")
-    create_file(file_path=path, file_name="output_data.txt",data="Checking Instance already exists or not\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\nChecking Instance already exists or not\n",mode="a")
+    
     id=get_data_from_file(file_name="instance_id.txt",file_path=path,mode="r")
     if id==None or id=="":
         print("Instance not exist, creating Instance")
         print("Fetching Latest AMI ID")
-        create_file(file_path=path, file_name="output_data.txt",data="Instance not exist, creating Instance\nFetching Latest AMI ID\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Instance not exist, creating Instance\n==> Fetching Latest AMI ID\n",mode="a")
         ami_id=sp.getstatusoutput("aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 --region {0} --profile {1}  --query Parameters[0].Value --output text".format(aws_region,website_name))
         if ami_id[0]==0:
             print("AMI ID is :",ami_id[1])
@@ -477,21 +478,33 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
             print("AMI ID not obtained. Using Default AMI")
             print(aws_region)
             if(aws_region == "ap-south-1"):
-                ami_id='ami-0f1fb91a596abf28d'
+                ami_id=(0,'ami-0f1fb91a596abf28d')
+            elif aws_region == "us-west-1":
+                ami_id=(0,'ami-04ad2567c9e3d7893')
             else:
-                ami_id='ami-04ad2567c9e3d7893'
+                print("Default AMI not found")
+                create_file(file_path=path, file_name="output_data.txt",data="==> AMI ID Not obtained. We can't create resource in given region. [Failed]\n",mode="a")
+                return False
+        create_file(file_path=path, file_name="output_data.txt",data="==> AMI ID obtained. AMI ID is {}. [40% done]\n".format(ami_id[1]),mode="a")
         print("AMI ID is :",ami_id) 
         instance=create_instance(profile=website_name,keyname=project+"_key_pair",image_id=ami_id[1],sgname=project+"_sg",save_file=path+"/detail.txt",save_file_mode="a",save=True,instance_type=i_type)
+        if instance == None:
+            # Instance Not Created
+            create_file(file_path=path, file_name="output_data.txt",data="==> Instance Not Created. [Failed]\n",mode="a")
+            return False
         create_file(file_name="instance_id.txt",file_path=path,data=instance[0],mode="w")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Instance Created. Instance Id is {} [50% done]\n==> Instance booting up, it might take few seconds.\n".format(instance[0]),mode="a")
         print("Instance is booting.Please Wait few sec")
         off=True
         while off==True:
             instance_status=sp.getstatusoutput("ssh -o StrictHostKeyChecking=no -i {} ec2-user@{} hostname".format(path+"/"+project+"_key_pair_webserver_accesskey.pem",instance[1]))
             if instance_status[0]==0:
                 print("Instance is up and running")
+                create_file(file_path=path, file_name="output_data.txt",data="==> Instance Successfully booted up. [60% done]\n",mode="a")
                 off=False
             else:
                 print("Instance is not up. Rechecking in 5 sec")
+                create_file(file_path=path, file_name="output_data.txt",data="==> Instance is not up. Rechecking in 5 seconds. \n",mode="a")
                 import time
                 time.sleep(5)
                 print(instance_status)
@@ -499,31 +512,50 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
         print("Instance ID is :",instance[0])
     else:
         print("Instance already exist")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Instance already exist. [50% done]\n",mode="a")
         print("Instance ID is :",id)
         print("Checking Instance start or not")
-        ip=get_instance_ip(id)
+        create_file(file_path=path, file_name="output_data.txt",data="\nChecking Instance start or not\n",mode="a")
+        ip=get_instance_ip(id,profile=website_name)
         if ip=="":
             print("Instance is not running")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Instance is not running. [Failed]\n",mode="a")
+            return False
         else:
             print("Instance is running")
-            instance=(id,ip)      
+            create_file(file_path=path, file_name="output_data.txt",data="==> Instance is running. [60% done]\n",mode="a")
+            instance=(id,ip)  
+
+    # Hosting website 
+    # 
+    # Check website already exists or not   
     print("checking website already hosted or not")
+    create_file(file_path=path, file_name="output_data.txt",data="\nChecking website already hosted or not\n",mode="a")
     get_url=get_data_from_file(file_name=project+"_url.txt",file_path=path,mode="r")
+    
     if get_url==None or get_url=="":
         print("Website not hosted. Creating webserver")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Website not hosted. Creating webserver\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Creating dependecies and installing Webserver. [70% done]\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Uploading webcode, it might take few minutes based on your internet speed. [70% done]\n",mode="a")
         url=upload_code(key_pair=path+"/"+project+"_key_pair_webserver_accesskey.pem",ip=instance[1],source_path=path+"/Code/*",destination_path=project+"_code")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Webserver created Successfully. [90% done]\n",mode="a")
         create_file(file_name=project+"_url.txt",file_path=path,data=url,mode="w")
-        dns_url=get_instance_dns_name(instance[0])
+        dns_url=get_instance_dns_name(instance[0],profile=website_name)
         create_file(file_name=project+"_dns_url.txt",file_path=path,data=dns_url,mode="w")
         create_file(file_name="detail.txt",file_path=path,data="Website DNS Url :"+dns_url+"\n",mode="a")
         create_file(file_name="detail.txt",file_path=path,data="Website IP Url :"+url+"\n",mode="a")
     else:
         print("Website already hosted")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Website already hosted. [90% done]\n",mode="a")
         url=get_url
+    create_file(file_path=path, file_name="output_data.txt",data="\n Obtaining website url and DNS links. [95% done]\n",mode="a")
     print("Your website url is :",url)
     print("Your website dns url is :",get_data_from_file(file_name=project+"_dns_url.txt",file_path=path,mode="r"))
-
-    return 0
+    create_file(file_path=path, file_name="output_data.txt",data="==> Website url and DNS links obtained. [100% done]\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\n=====> Website URL : {0}\n=====> Website DNS: {1}\n".format(url,dns_url),mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\n\n\n For more info: Go to Detail page.\n\nThanks for using our product. Project: {} Successfully hosted over AWS.".format(website_name),mode="a")
+    return True
 
  
 

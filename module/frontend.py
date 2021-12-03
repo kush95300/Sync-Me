@@ -20,6 +20,7 @@ GEOMETRY = "{}x{}".format(FRAME_WIDTH, FRAME_HEIGHT)
 delete_project = False
 ENV_VARS = []
 CODE_Uploaded = False
+REFRESH=False
 
 
 # Multipage GUI
@@ -172,6 +173,7 @@ class ProjectPage(tkinter.Frame):
                 os.mkdir(PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
             except:
                 pass
+            messagebox.showinfo("Success", "Project Folder Created. Upload your code in Code Folder\n We are opening that for you. Just copy your code there.")
             os.system("start "+PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
             m = messagebox.askokcancel("Are you done with Code?", "Do you want to save the code in the Project Folder?")
             if m == True:
@@ -236,7 +238,7 @@ class ConfigurationPage(tkinter.Frame):
         Entry(self,show="*",textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
         input4 = StringVar()
         Entry(self,textvariable=input4,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
-
+        
         # Submit Button
         self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
         b3 = tkinter.Button(self, text="Upload Variable",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),
@@ -311,10 +313,11 @@ class ConfigurationPage(tkinter.Frame):
 class ConsolePage(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent, background="white")
+        
+        print ("REFRESH :",REFRESH)
         # Frame for the console box
-        put_full_output(0)
         self.frame = Frame(self, bg="white", width=FRAME_WIDTH-20, height=FRAME_HEIGHT-100)
-        self.frame.grid(row=0, column=0, columnspan=2,sticky="nsew")
+        self.frame.grid(row=0, column=0, columnspan=3,sticky="nsew")
 
         # Console box
         self.console = Canvas(self.frame,background="black",width=FRAME_WIDTH-20, height=FRAME_HEIGHT-100,scrollregion=(0,0,2000,5000))
@@ -329,34 +332,52 @@ class ConsolePage(tkinter.Frame):
         
         
         self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/dependencies/data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
-        self.refresh()
+        #self.refresh()
 
         # Buttons for goto home page
         b1 = Button(self, text="Go to Main Page",command=lambda: self.go_home(controller=controller,detail=False), padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
         b1.grid_configure(row=1, column=0, pady=20)
 
         b2 = Button(self, text="Go to Detail Page",command=lambda: self.go_home(controller=controller,detail=True) , padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
-        b2.grid_configure(row=1, column=1, pady=20)
+        b2.grid_configure(row=1, column=2, pady=20)
+
+        b3 = Button(self, text="Auto Refresh",command=lambda: self.trigger_refresh() , padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="orange")
+        b3.grid_configure(row=1, column=1, pady=20)
     
     # goto home page
     def go_home(self,controller,detail):
-        put_full_output(1)
+        global REFRESH
+        global CODE_Uploaded
+        if CODE_Uploaded == True:
+            messagebox.showwarning("Warning", "Code is still Uploading. Server will configure soon.")
+            return
+        REFRESH = False
+        global ENV_VARS
+        ENV_VARS = []
         if detail:
             controller.show_frame(DetailPage)
         else:
             controller.show_frame(StartPage)
 
-    
+    # Trigger the console Refresh
+    def trigger_refresh(self):
+        global REFRESH
+        REFRESH = True
+        self.refresh()
+
+
     # Refresh the console box
     def refresh(self):
+        global REFRESH
+        print ("REFRESH State :",REFRESH)
         global ENV_VARS
-        fulloutput=get_full_output()
+        
         self.console.delete(ALL)
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=("comicsansms", 20, "bold"))
-        try:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        try:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
         except:pass
-        if fulloutput=="False" or fulloutput=="":
-            self.after(3000, self.refresh)
+        if REFRESH==True or REFRESH=="True":
+            self.after(1000, self.refresh)
         else:
             print("Refreshing Stop. Full Output Done")
             return
@@ -368,29 +389,9 @@ def get_data( file):
             data = f.read()
     except:
         data = "Data not found"
+        print("Data not found at :",file)
     return data
 
-
-# get full output  
-def get_full_output():
-    try:
-        with open(PATH+"\\dependencies\\"+"full_output.txt", "r") as f:
-            full_output = f.read()
-    except:
-        full_output = True
-    return full_output
-
-# Put full output in file
-def put_full_output(x):
-    if x==1:
-        #print(x)
-        with open(PATH+"\\dependencies\\"+"full_output.txt", "w") as f:
-            f.write("True")
-    else:
-        with open(PATH+"\\dependencies\\"+"full_output.txt", "w") as f:
-            f.write("False")
-
-full_output =get_full_output()
 
 # Get ENV VARS
 def get_env_vars():
@@ -407,8 +408,11 @@ def create_website_thread():
     create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_data.txt",data="",mode="w")
 
     # Create the project Website
-    create_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
-
+    web =create_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
+    if web == False:
+        messagebox.showwarning("Warning", "Website Creation Failed. Something went wrong. We are undoing changes.\n Wait few minutes..")
+        # shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
+        return
     # Update the code uploaded status
     create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))
     
@@ -423,7 +427,8 @@ def create_website_thread():
     status =set_aws_credentials_empty(profile_name=ENV_VARS[0])
     if status:
         print("Credentials Removed")
-    ENV_VARS = []
+    global REFRESH
+    REFRESH = False
     print("Thread Stopped")
 
 
