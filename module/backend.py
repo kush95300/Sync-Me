@@ -1,6 +1,8 @@
 import subprocess as sp
 import os
 from time import sleep
+import time
+from tkinter.constants import TRUE
 
 # All Functions are mentioned below
 
@@ -30,6 +32,31 @@ def create_key(keyname,profile):
         return True
     else:
         print("Key Not Created")
+        return False
+
+# function to delete key pair
+def delete_key(keyname,profile):
+    """
+    Description:
+    Delete Key Pair
+
+    Input:
+    keyname: key name
+    profile: profile name
+
+    Output:
+    None
+
+    Message:
+    Key Pair Deleted or Not Deleted
+    """
+    key=sp.getstatusoutput("aws ec2 delete-key-pair --key-name {0} --profile {1}".format(keyname,profile))
+    if(key[0]==0):
+        print("Key Deleted")
+        return True
+    else:
+        print("Key Not Deleted")
+        print("Error Code:",key)
         return False
 
 #function to create key pair file mode for linux
@@ -115,6 +142,31 @@ def create_sg(sgname,profile,description="None",save_file="sg.txt",save_file_mod
         print("Security Group Not Created")
         print("Error Code:",sg)
         return None
+
+# function to delete security group
+def delete_sg(sg_id,profile):
+    """
+    Description:
+    Delete Security Group and save security group id in a file
+
+    Input:
+    sg_id: security group id
+    profile: profile name
+
+    Output:
+    None
+
+    Message:
+    Security Group Deleted or Not Deleted
+    """
+    sg=sp.getstatusoutput("aws ec2 delete-security-group --group-id {0} --profile {1}".format(sg_id,profile))
+    if(sg[0]==0):
+        print("Security Group Deleted")
+        return True
+    else:
+        print("Security Group Not Deleted")
+        print("Error Code:",sg)
+        return False
 
 #function to create security group rule
 def create_sg_rule(sgname,profile,port,protocol,type="ingress",cidr="0.0.0.0/0",source_sg=None):
@@ -208,6 +260,32 @@ def create_instance(profile,keyname,sgname=None,instance_type="t2.micro",image_i
         print("Instance Not Created")
         print("Error Code:",instance)
         return None
+
+# function to delete instance
+def delete_instance(instance_id,profile):
+    """
+    Description:
+    Delete Instance and save instance id in a file
+
+    Input:
+    instance_id: instance id
+    profile: profile name
+
+    Output:
+    None
+
+    Message:
+    Instance Deleted or Not Deleted
+
+    """
+    instance=sp.getstatusoutput("aws ec2 terminate-instances --instance-ids {0} --profile {1}".format(instance_id,profile))
+    if (instance[0]==0):
+        print("Instance Deleted")
+        return True
+    else:
+        print("Instance Not Deleted")
+        print("Error Code:",instance)
+        return False
 
 # upload code to instance
 def upload_code(key_pair,ip,user_name="ec2-user",source_path="webcode/*",destination_path="/home/ec2-user/webcode"):
@@ -308,6 +386,17 @@ def create_file(file_name,data,file_path,mode="w"):
     
 # getter function
 
+# function to get security group id
+def get_security_group_id(website_name,path):
+    print("Getting Instance ID")
+    id = get_data_from_file(file_name=website_name+"_sg.txt",file_path=path)
+    if id:
+        print("Security Group ID:",id)
+        return id
+    else:
+        print("Security Group ID Not Obtained")
+        return None
+
 # To get data from local file
 def get_data_from_file(file_name,file_path=os.path.dirname(os.path.abspath(__file__)),mode="r"):
     """
@@ -362,6 +451,17 @@ def get_instance_ip(id,profile):
             return None
     except:
         print("IP Not Obtained")
+        return None
+
+# get instance id
+def get_instance_id(path):
+    print("Getting Instance ID")
+    id = get_data_from_file(file_name="instance_id.txt",file_path=path)
+    if id:
+        print("Instance ID:",id)
+        return id
+    else:
+        print("Instance ID Not Obtained")
         return None
 
 # get instance dns name
@@ -559,36 +659,69 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
 
  
 
-# delete project function
-def delete_project():
-    """
-    Description:
-    Delete project
-
-    Input:
-    None
-
-    Output:
-    None
-
-    Message:
-    None
-
-    """
-    project=input("Enter your project name :")
-    #project="project_name"
-    print("Your project name is :",project)
-    input_data=input("Are you sure you want to delete this project (y/n) :")
-    if input_data=="y":
-        path=pro_path+"/"+project
-        print("Deleting Project at "+path)
-        #delete_website(website_name=project,path=path)
-        os.system("rmdir /s /Q "+path)
-        print("Project deleted successfully")
-        return 0
+# delete Website function
+def delete_website(website_name,path,aws_access_key_id,aws_secret_access_key,aws_region):
+    print("Deleting Website")
+    create_file(file_path=path, file_name="output_delete.txt",data="\nDeleting Instance\n\n==> Getting Instance ID\n",mode="a")
+    # get instance id
+    instance_id=get_instance_id(path)
+    if instance_id==None:
+        print("No instance found")
+        create_file(file_path=path, file_name="output_data.txt",data="==> No instance Id found. [Failed]\n",mode="a")
+        return False
     else:
-        print("Project not deleted")
-        return 1
+        print("Instance found")
+        create_file(file_path=path, file_name="output_delete.txt",data="==> Instance ID successfully found. [25% done]\nNow deleting Instance. It might take 1-2 minutes. \n",mode="a")
+        # delete instance
+        state = delete_instance(instance_id,profile=website_name)
+        if state==True:
+            print("Instance deleted")
+            create_file(file_path=path, file_name="output_delete.txt",data="==> Instance successfully deleted. [70% done]\n",mode="a")
+        else:
+            print("Instance not deleted")
+            create_file(file_path=path, file_name="output_delete.txt",data="==> Instance not deleted. [Failed]\n",mode="a")
+            return False
+    
+    # delete Security Group
+    print("Deleting Security Group")
+    create_file(file_path=path, file_name="output_delete.txt",data="\nNow Deleting Securty Group\n\n==> Getting Security Group ID\n",mode="a")
+    # get security group id
+    security_group_id=get_security_group_id(website_name,path)
+    if security_group_id==None:
+        print("No security group found")
+        create_file(file_path=path, file_name="output_delete.txt",data="==> No security group Id found. [Failed]\n",mode="a")
+        return False
+    else:
+        print("Security group found")
+        create_file(file_path=path, file_name="output_delete.txt",data="==> Security group ID successfully found. [80% done]\nNow deleting Security Group. It might take 1-2 minutes. \n",mode="a")
+        # delete security group
+        # checking instance deleted or not
+        flag = TRUE
+        while flag:
+            i_state = sp.getstatusoutput("aws ec2 describe-instances --profile "+website_name+" --region "+aws_region+" --instance-ids "+instance_id+" --query Reservations[*].Instances[*].State.Name --output text")
+            if i_state[1]=="terminated":
+                flag = False
+            else:
+                print(i_state)
+                create_file(file_path=path, file_name="output_delete.txt",data="==> Instance haven't relaeased ENI yet. waitnig for detachment. Refreshing in 5 minutes. [80% done]\n",mode="a")
+                time.sleep(5)
+        state = delete_sg(security_group_id,profile=website_name)
+        create_file(file_path=path, file_name="output_delete.txt",data="==> Waiting for ENI to be free. Refresh in 5 seconds.\n",mode="a")
+        if state==True:
+            print("Security group deleted")
+            create_file(file_path=path, file_name="output_delete.txt",data="==> Security group successfully deleted. [90% done]\n",mode="a")
+        else:
+            print("Security group not deleted")
+            create_file(file_path=path, file_name="output_delete.txt",data="==> Security group not deleted. [Failed]\n",mode="a")
+            return False
+    
+    # delete key pair
+    print("Deleting Key Pair")
+    create_file(file_path=path, file_name="output_delete.txt",data="\nNow Deleting Key Pair\n\n",mode="a")
+    delete_key(website_name+"_key_pair",profile=website_name)
+    create_file(file_path=path, file_name="output_delete.txt",data="==> Key Pair successfully deleted. [100% done]\n",mode="a")
+    create_file(file_path=path, file_name="output_delete.txt",data="\n\n\nAll Info related to project deleted.\n\nThanks for using our product. Project: {} Successfully deleted over AWS.".format(website_name),mode="a")
+    return True
 
 # get absolute path of current file
 pro_path=os.path.abspath(os.path.dirname(__file__))

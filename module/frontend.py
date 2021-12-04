@@ -10,17 +10,18 @@ from tkinter.font import BOLD
 from PIL import Image, ImageTk
 from module.backend import *
 
-PATH =os.path.dirname(sys.modules['__main__'].__file__)
-IMAGE_PATH = "{}/images/".format(PATH)
-LARGE_FONT = ("Verdana", 12)
+# Global Variables
+PATH =os.path.dirname(sys.modules['__main__'].__file__) # Get the path of the current file
+IMAGE_PATH = "{}/images/".format(PATH)  # Get the path of images
+LARGE_FONT = ("Verdana", 12) 
 TEXT_FONT = "comicsansms"
 FRAME_WIDTH = 1200
 FRAME_HEIGHT = 650
-GEOMETRY = "{}x{}".format(FRAME_WIDTH, FRAME_HEIGHT)
-delete_project = False
-ENV_VARS = []
-CODE_Uploaded = False
-REFRESH=False
+GEOMETRY = "{}x{}".format(FRAME_WIDTH, FRAME_HEIGHT) # App Class GUI Window Geoemtry
+delete_project = False # Delete Project or not
+ENV_VARS = [] # Global variable to store the environment variables
+CODE_Uploaded = False       # variable showing code uploaded locally or not
+REFRESH=False               # Refresh the console window
 
 
 # Multipage GUI
@@ -175,6 +176,7 @@ class ProjectPage(tkinter.Frame):
                 pass
             messagebox.showinfo("Success", "Project Folder Created. Upload your code in Code Folder\n We are opening that for you. Just copy your code there.")
             os.system("start "+PATH+"/Projects/{}/Code".format(ENV_VARS[0]))
+            time.sleep(2)
             m = messagebox.askokcancel("Are you done with Code?", "Do you want to save the code in the Project Folder?")
             if m == True:
                 messagebox.showinfo("Success", "Code Uploaded Successfully (Locally)")
@@ -246,7 +248,10 @@ class ConfigurationPage(tkinter.Frame):
     
     # Submit Button Function
     def submit(self,controller,inputs):
+        # import variables
         global ENV_VARS
+        global delete_project
+        global CODE_Uploaded
 
         # Checking inputs are empty or not 
         for i in inputs:
@@ -255,8 +260,6 @@ class ConfigurationPage(tkinter.Frame):
                 return
 
         # Warn user to create website as webcode already exists
-        global delete_project
-        global CODE_Uploaded
         if delete_project == False and CODE_Uploaded == True:
             messagebox.showwarning("Warning", "First Create Website of Uploaded Code")
             choice = messagebox.askyesno("Warning", "Do you still want to create the Project? \n\n Current Project Code will locally saved. You can set that up again from detail page. ")
@@ -265,10 +268,11 @@ class ConfigurationPage(tkinter.Frame):
             else:
                 controller.show_frame(ProjectPage)
         
-        # Checking Project already exists or not
-        if os.path.exists(PATH+"/Projects/{}".format(inputs[0])):
-            messagebox.showerror("Error","Project Already Exists. Choose other name.")
-            return
+        # Checking Project already exists or not 
+        if delete_project == False:
+            if os.path.exists(PATH+"/Projects/{}".format(inputs[0])):
+                messagebox.showerror("Error","Project Already Exists. Choose other name.")
+                return
 
         # Checking AWS CLI is installed or not
         x = test_aws()
@@ -289,11 +293,13 @@ class ConfigurationPage(tkinter.Frame):
         if delete_project == True:
             # Confirm to delete the project
             m=messagebox.askokcancel("Delete Project","Are you sure you want to delete the project?")
+            print(m)
             if m == False:
                 return
             else:
                 # Delete the project and route to Console Page
-                delete_project = False
+                thread = threading.Thread(target=create_website_thread, args=())
+                thread.start()
                 controller.show_frame(ConsolePage)
         else:
             # Route to Project Page
@@ -332,8 +338,7 @@ class ConsolePage(tkinter.Frame):
         
         
         self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/dependencies/data.txt"), fill="white", font=(TEXT_FONT, 12, "bold"))
-        #self.refresh()
-
+        
         # Buttons for goto home page
         b1 = Button(self, text="Go to Main Page",command=lambda: self.go_home(controller=controller,detail=False), padx=5, pady=5, font=(TEXT_FONT, 15), fg="black", bg="sky blue")
         b1.grid_configure(row=1, column=0, pady=20)
@@ -362,8 +367,12 @@ class ConsolePage(tkinter.Frame):
     # Trigger the console Refresh
     def trigger_refresh(self):
         global REFRESH
+        print("REFRESH :",REFRESH)
+        global delete_project
         REFRESH = True
+        print("REFRESH after trigger :",REFRESH)
         self.refresh()
+        
 
 
     # Refresh the console box
@@ -371,11 +380,17 @@ class ConsolePage(tkinter.Frame):
         global REFRESH
         print ("REFRESH State :",REFRESH)
         global ENV_VARS
+        global delete_project
         
         self.console.delete(ALL)
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=("comicsansms", 20, "bold"))
-        try:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
-        except:pass
+        try:
+            print(delete_project)
+            if delete_website==True or delete_project=="True":
+                self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_delete.txt"), fill="white", font=("comicsansms", 12, "bold"))
+            else:
+                self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        except:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_delete.txt"), fill="white", font=("comicsansms", 12, "bold"))
         if REFRESH==True or REFRESH=="True":
             self.after(1000, self.refresh)
         else:
@@ -403,9 +418,26 @@ def create_website_thread():
     print("Starting Website Thread")
     global CODE_Uploaded
     global ENV_VARS
-
+    global delete_project
+    global REFRESH
+   
     # Create output file
     create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_data.txt",data="",mode="w")
+
+    # create output file for delete
+    if delete_project == True:
+        create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_delete.txt",data="Process of Deleting Project {} starting.\n\n xxxxxxx Deletion Started xxxxxxxx\n\n".format(ENV_VARS[0]),mode="w")
+        rm_web = delete_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
+        if rm_web == False:
+            REFRESH = False
+            messagebox.showwarning("Warning", "Website Deletion Failed. Something went wrong. \nNow you have to delete the website manually.")
+        REFRESH = False
+        messagebox.showwarning("Warning", "we are removing project's local data.")
+        shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
+        set_aws_credentials_empty(profile_name=ENV_VARS[0])
+        delete_project = False 
+        print("Thread Ended")
+        return
 
     # Create the project Website
     web =create_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
@@ -427,9 +459,10 @@ def create_website_thread():
     status =set_aws_credentials_empty(profile_name=ENV_VARS[0])
     if status:
         print("Credentials Removed")
-    global REFRESH
+   
     REFRESH = False
     print("Thread Stopped")
+    return
 
 
 
