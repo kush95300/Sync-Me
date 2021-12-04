@@ -662,7 +662,7 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
 # delete Website function
 def delete_website(website_name,path,aws_access_key_id,aws_secret_access_key,aws_region):
     print("Deleting Website")
-    create_file(file_path=path, file_name="output_delete.txt",data="\nDeleting Instance\n\n==> Getting Instance ID\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\nDeleting Instance\n\n==> Getting Instance ID\n",mode="a")
     # get instance id
     instance_id=get_instance_id(path)
     if instance_id==None:
@@ -671,29 +671,29 @@ def delete_website(website_name,path,aws_access_key_id,aws_secret_access_key,aws
         return False
     else:
         print("Instance found")
-        create_file(file_path=path, file_name="output_delete.txt",data="==> Instance ID successfully found. [25% done]\nNow deleting Instance. It might take 1-2 minutes. \n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Instance ID successfully found. [25% done]\nNow deleting Instance. It might take 1-2 minutes. \n",mode="a")
         # delete instance
         state = delete_instance(instance_id,profile=website_name)
         if state==True:
             print("Instance deleted")
-            create_file(file_path=path, file_name="output_delete.txt",data="==> Instance successfully deleted. [70% done]\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Instance successfully deleted. [70% done]\n",mode="a")
         else:
             print("Instance not deleted")
-            create_file(file_path=path, file_name="output_delete.txt",data="==> Instance not deleted. [Failed]\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Instance not deleted. [Failed]\n",mode="a")
             return False
     
     # delete Security Group
     print("Deleting Security Group")
-    create_file(file_path=path, file_name="output_delete.txt",data="\nNow Deleting Securty Group\n\n==> Getting Security Group ID\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\nNow Deleting Securty Group\n\n==> Getting Security Group ID\n",mode="a")
     # get security group id
     security_group_id=get_security_group_id(website_name,path)
     if security_group_id==None:
         print("No security group found")
-        create_file(file_path=path, file_name="output_delete.txt",data="==> No security group Id found. [Failed]\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> No security group Id found. [Failed]\n",mode="a")
         return False
     else:
         print("Security group found")
-        create_file(file_path=path, file_name="output_delete.txt",data="==> Security group ID successfully found. [80% done]\nNow deleting Security Group. It might take 1-2 minutes. \n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Security group ID successfully found. [80% done]\nNow deleting Security Group. It might take 1-2 minutes. \n",mode="a")
         # delete security group
         # checking instance deleted or not
         flag = TRUE
@@ -703,24 +703,24 @@ def delete_website(website_name,path,aws_access_key_id,aws_secret_access_key,aws
                 flag = False
             else:
                 print(i_state)
-                create_file(file_path=path, file_name="output_delete.txt",data="==> Instance haven't relaeased ENI yet. waitnig for detachment. Refreshing in 5 minutes. [80% done]\n",mode="a")
-                time.sleep(5)
+                create_file(file_path=path, file_name="output_data.txt",data="==> Instance haven't relaeased ENI yet. waitnig for detachment. Refreshing in 3 seconds. [80% done]\n",mode="a")
+                time.sleep(3)
         state = delete_sg(security_group_id,profile=website_name)
-        create_file(file_path=path, file_name="output_delete.txt",data="==> Waiting for ENI to be free. Refresh in 5 seconds.\n",mode="a")
+        create_file(file_path=path, file_name="output_data.txt",data="==> Waiting for ENI to be free. Refresh in 3 seconds.\n",mode="a")
         if state==True:
             print("Security group deleted")
-            create_file(file_path=path, file_name="output_delete.txt",data="==> Security group successfully deleted. [90% done]\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Security group successfully deleted. [90% done]\n",mode="a")
         else:
             print("Security group not deleted")
-            create_file(file_path=path, file_name="output_delete.txt",data="==> Security group not deleted. [Failed]\n",mode="a")
+            create_file(file_path=path, file_name="output_data.txt",data="==> Security group not deleted. [Failed]\n",mode="a")
             return False
     
     # delete key pair
     print("Deleting Key Pair")
-    create_file(file_path=path, file_name="output_delete.txt",data="\nNow Deleting Key Pair\n\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\nNow Deleting Key Pair\n\n",mode="a")
     delete_key(website_name+"_key_pair",profile=website_name)
-    create_file(file_path=path, file_name="output_delete.txt",data="==> Key Pair successfully deleted. [100% done]\n",mode="a")
-    create_file(file_path=path, file_name="output_delete.txt",data="\n\n\nAll Info related to project deleted.\n\nThanks for using our product. Project: {} Successfully deleted over AWS.".format(website_name),mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="==> Key Pair successfully deleted. [100% done]\n",mode="a")
+    create_file(file_path=path, file_name="output_data.txt",data="\n\n\nAll Info related to project deleted.\n\nThanks for using our product. Project: {} Successfully deleted over AWS.".format(website_name),mode="a")
     return True
 
 # get absolute path of current file

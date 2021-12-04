@@ -102,7 +102,7 @@ class DetailPage(tkinter.Frame):
         monthchoosen =ttk.Combobox(self, width = 27, textvariable = n,font = (TEXT_FONT, 20, "bold"))
         
         # Adding combobox drop down list
-        monthchoosen['values'] = ("default")
+        monthchoosen['values'] = os.listdir(PATH+"/projects/") 
         
         monthchoosen.place(x = 350, y =100)
         monthchoosen.current()
@@ -384,13 +384,7 @@ class ConsolePage(tkinter.Frame):
         
         self.console.delete(ALL)
         self.console.create_text(10, 10, anchor=NW, text="Console", fill="Red", font=("comicsansms", 20, "bold"))
-        try:
-            print(delete_project)
-            if delete_website==True or delete_project=="True":
-                self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_delete.txt"), fill="white", font=("comicsansms", 12, "bold"))
-            else:
-                self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
-        except:self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_delete.txt"), fill="white", font=("comicsansms", 12, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file=PATH+"/Projects/"+ENV_VARS[0]+"/output_data.txt"), fill="white", font=("comicsansms", 12, "bold"))
         if REFRESH==True or REFRESH=="True":
             self.after(1000, self.refresh)
         else:
@@ -426,7 +420,7 @@ def create_website_thread():
 
     # create output file for delete
     if delete_project == True:
-        create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_delete.txt",data="Process of Deleting Project {} starting.\n\n xxxxxxx Deletion Started xxxxxxxx\n\n".format(ENV_VARS[0]),mode="w")
+        #create_file(file_path=PATH+"/Projects/"+ENV_VARS[0], file_name="output_delete.txt",data="Process of Deleting Project {} starting.\n\n xxxxxxx Deletion Started xxxxxxxx\n\n".format(ENV_VARS[0]),mode="w")
         rm_web = delete_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
         if rm_web == False:
             REFRESH = False
