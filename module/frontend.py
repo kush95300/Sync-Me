@@ -226,7 +226,7 @@ class DetailPage(tkinter.Frame):
         self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
     
         if self.is_selected():
-            if os.path.exists(PATH+"/Projects/"+project+"/"+project+".url"):
+            if os.path.exists(PATH+"/Projects/"+project+"/"+project+"_dns_url.txt"):
                 url = get_data(file=PATH+"/Projects/"+project+"/"+project+"_dns_url.txt")
                 if url == "" or url == "Data not found":
                     self.console.create_text(50, 50, anchor=NW, text="No url found", fill="white", font=(TEXT_FONT, 12, "bold"))
@@ -239,8 +239,6 @@ class DetailPage(tkinter.Frame):
                 messagebox.showinfo("Error","No url found")
         else:
             return
-
-            
 
 # Project Page
 class ProjectPage(tkinter.Frame):
@@ -316,8 +314,8 @@ class ProjectPage(tkinter.Frame):
             messagebox.showwarning("Error", "Please Upload the Code First")
         else:
             thread = threading.Thread(target=create_website_thread, args=())
-            thread.start()
             messagebox.showinfo("Info", "Website Creation Started, It may take 2-5 minutes to setup website")
+            thread.start()
             controller.show_frame(ConsolePage)              
             
         
@@ -556,7 +554,14 @@ def create_website_thread():
     web =create_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
     if web == False:
         messagebox.showwarning("Warning", "Website Creation Failed. Something went wrong. We are undoing changes.\n Wait few minutes..")
-        # shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
+        rm_web = delete_website(website_name=ENV_VARS[0],aws_region=ENV_VARS[3],aws_access_key_id=ENV_VARS[1],aws_secret_access_key=ENV_VARS[2],path=PATH+"/Projects/"+ENV_VARS[0])
+        if rm_web == False:
+            REFRESH = False
+            messagebox.showwarning("Warning", "Website Deletion Failed. Something went wrong. \nNow you have to delete the website manually.")
+        REFRESH = False
+        messagebox.showwarning("Warning", "we are removing project's local data.")
+        shutil.rmtree(PATH+"/Projects/{}".format(ENV_VARS[0],force=True))
+        set_aws_credentials_empty(profile_name=ENV_VARS[0])
         return
     # Update the code uploaded status
     create_file(mode='w',file_name="{}_status.txt".format(ENV_VARS[0]),data="Project : {} \nStatus: Code Uploaded and Website Successfully created".format(CODE_Uploaded),file_path=PATH+"/Projects/{}".format(ENV_VARS[0]))

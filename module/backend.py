@@ -7,7 +7,7 @@ from tkinter.constants import TRUE
 # All Functions are mentioned below
 
 #function to create key pair
-def create_key(keyname,profile):
+def create_key(keyname,profile,path):
     """
     Description:
     Create key pair
@@ -21,7 +21,10 @@ def create_key(keyname,profile):
     Message:
     Key Pair Created or Not Created
     """
-    key=sp.getstatusoutput("aws ec2 create-key-pair --profile {1} --key-name {0}  --query KeyMaterial --output text > {0}_webserver_accesskey.pem".format(keyname,profile))
+    print("Creating Key Pair flagggggggggg")
+    key=sp.getstatusoutput("aws ec2 create-key-pair --profile {1} --key-name {0}  --query KeyMaterial --output text > {2}/{0}_webserver_accesskey.pem".format(keyname,profile,path))
+    print("Creating Key Pair flagggggggggg2222222222 \n\naws ec2 create-key-pair --profile {1} --key-name {0}  --query KeyMaterial --output text > {2}/{0}_webserver_accesskey.pem".format(keyname,profile,path))
+    
     if(key[0]==0):
         print("Key Created")
         if os.name == 'nt':
@@ -515,7 +518,7 @@ def create_website(path,website_name,aws_access_key_id,aws_secret_access_key,aws
     project = website_name
     # Create Key Pair
     try:
-        key=create_key(project+"_key_pair",profile=website_name)
+        key=create_key(project+"_key_pair",profile=website_name,path=path)
         if key:
             # Key Pair Created
             os.system("move {0} {1}".format(project+"_key_pair_webserver_accesskey.pem",path))
