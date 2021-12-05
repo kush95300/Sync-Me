@@ -97,31 +97,150 @@ class DetailPage(tkinter.Frame):
         Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(StartPage)).place(x=10,y=10)
 
         # Project Details
-        Label(self, text = "Select Project :",font = (TEXT_FONT, 20, "bold"),bg="white").place(x=100,y=100)
-        n = StringVar()
-        monthchoosen =ttk.Combobox(self, width = 27, textvariable = n,font = (TEXT_FONT, 20, "bold"))
+        Label(self, text = "Project Name :",font = (TEXT_FONT, 25, "bold"),bg="white").place(x=100,y=100)
+        self.projectlist =ttk.Combobox(self, width = 27,font = (TEXT_FONT, 20, "bold"),state="readonly")
+        
         
         # Adding combobox drop down list
-        monthchoosen['values'] = os.listdir(PATH+"/projects/") 
+        self.projectlist['values'] = self.get_project_list()
         
-        monthchoosen.place(x = 350, y =100)
-        monthchoosen.current()
+        
+        self.projectlist.place(x = 350, y =100)
+        self.projectlist.current()
         # Label(self, text = "Project Details",font = (TEXT_FONT, 25, "bold"),bg="White",fg="black").place(x=FRAME_WIDTH/2-150,y=190)
         # self.can = Canvas(self,bg="black",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30).place(x=FRAME_WIDTH/2-200,y=250)
         # self.can.create_text(self.can,text="Project Name :",font=(TEXT_FONT,15,"bold"),fill="white",anchor="nw",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30,tags="text")
         self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"detail-big.jpg"))
-        Label(self, text="",image=self.img,bd=0 ).place(x=50,y=FRAME_HEIGHT/2-130)
+        Label(self, text="",image=self.img,bd=0 ,foreground="blue").place(x=FRAME_WIDTH-300,y=FRAME_HEIGHT/2-130)
 
         # Frame for the console box
-        self.frame = Frame(self, bg="grey",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30)
-        self.frame.place(x=FRAME_WIDTH/2-200,y=250)
+        self.frame = Frame(self, bg="grey",width=FRAME_WIDTH/2+200,height=FRAME_HEIGHT/2+30)
+        self.frame.place(x=80,y=280)
 
         # Console box
-        self.Label = Label(self, text = "Project Details",font = (TEXT_FONT, 25, "bold"),bg="White",fg="black").place(x=FRAME_WIDTH/2-150,y=190)
-        self.console = Canvas(self.frame,background="black",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30)
+        self.Label = Label(self, text = "Project Details",font = (TEXT_FONT, 25, "bold"),bg="White",fg="black").place(x=80,y=190)
+        self.console = Canvas(self.frame,background="black",width=FRAME_WIDTH/2+200,height=FRAME_HEIGHT/2+30)
         self.console.place(x=0,y=0)
         self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
-        self.console.create_text(50, 50, anchor=NW, text=get_data(file="{}.txt".format(monthchoosen.current)), fill="white", font=(TEXT_FONT, 12, "bold"))     
+        self.console.create_text(50, 50, anchor=NW, text=get_data(file="{}.txt".format(self.projectlist.current)), fill="white", font=(TEXT_FONT, 12, "bold"))     
+
+        # Buttons
+
+        # button to view the project details
+        self.image1 = PhotoImage(file=IMAGE_PATH+"detail_page.png")
+        b1 = tkinter.Button(self, text="View",command=lambda: self.view_project(),image=self.image1, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
+        b1.place(x=FRAME_WIDTH/2-250,y=FRAME_HEIGHT/2-132)
+
+        # button to refresh the project list
+        self.image2 = PhotoImage(file=IMAGE_PATH+"refresh.png")
+        b2 = tkinter.Button(self, text="Refresh",command=lambda: self.refresh_project(),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
+        b2.place(x=FRAME_WIDTH/2+200,y=98)
+
+        # button to open the project code folder
+        self.image3 = PhotoImage(file=IMAGE_PATH+"code.png")
+        b3 = tkinter.Button(self, text="Open Code",command=lambda: self.open_project(),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
+        b3.place(x=FRAME_WIDTH/2+50,y=FRAME_HEIGHT/2-132)
+
+        # button to navigate to the project url
+        self.image4 = PhotoImage(file=IMAGE_PATH+"url.png")
+        b4 = tkinter.Button(self, text="URL",command=lambda: self.open_url(),image=self.image4, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
+        b4.place(x=FRAME_WIDTH/2-100,y=FRAME_HEIGHT/2-132)
+
+    # is selected project
+    def is_selected(self):
+        if self.projectlist.get() == "" or self.projectlist.get() == "Select Project":
+            messagebox.showinfo("Error","Please select a project")
+            return False
+        elif self.projectlist.get()== "NO PROJECT FOUND":
+            messagebox.showinfo("Error", "No projects found")
+            return False
+        else:
+            return True
+
+    # get the project list
+    def get_project_list(self):
+        projects_name = os.listdir(PATH+"/projects/") 
+        if projects_name == []:
+            projects_name = ["NO PROJECT FOUND"]
+        return projects_name
+
+
+    # function to view details
+    def view_project(self):
+        print("Project :",self.projectlist.get())
+        project = self.projectlist.get()
+        if self.is_selected():
+            self.console.delete("all")
+            self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
+            try:
+                data = get_data(file=PATH+"/Projects/"+project+"/detail.txt")
+                if data == "" or data == "Data not found":
+                    raise ValueError("Detail not found")
+                self.console.create_text(50, 50, anchor=NW, text=data, fill="white", font=(TEXT_FONT, 12, "bold"))
+            except:
+                try:
+                    data = get_data(file=PATH+"/projects/"+project+"/"+project+"_status.txt")
+                    if data == "" or data == "Data not found":
+                        raise ValueError("Status not found")
+                    self.console.create_text(50, 50, anchor=NW, text=data, fill="white", font=(TEXT_FONT, 12, "bold"))
+                except:
+                    self.console.create_text(50, 50, anchor=NW, text="No details found", fill="white", font=(TEXT_FONT, 12, "bold"))
+                    messagebox.showinfo("Error","No details found")
+
+        else:
+            return
+        
+    
+    # function to refresh the project list
+    def refresh_project(self):
+        self.projectlist.destroy()
+        self.console.delete("all")
+        self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
+        self.console.create_text(50, 50, anchor=NW, text="Refreshing...\n\nRefresh Done", fill="white", font=(TEXT_FONT, 12, "bold"))
+        self.projectlist =ttk.Combobox(self, width = 27,font = (TEXT_FONT, 20, "bold"),state="readonly",values=self.get_project_list())
+        self.projectlist.place(x = 350, y =100)
+        self.projectlist.current()
+
+
+    
+    # Open the project code folder
+    def open_project(self):
+        project = self.projectlist.get()
+        self.console.delete("all")
+        self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
+        if self.is_selected():
+            if os.path.exists(PATH+"/Projects/"+project+"/code"):
+                self.console.create_text(50, 50, anchor=NW, text="Opening Code Folder...\nDone.", fill="white", font=(TEXT_FONT, 12, "bold"))
+                os.startfile(PATH+"/Projects/"+project+"/code")
+            else:
+                self.console.create_text(50, 50, anchor=NW, text="No Code Folder Found", fill="white", font=(TEXT_FONT, 12, "bold"))
+                messagebox.showinfo("Error","No code folder found")
+        else:
+            return
+        
+    
+    # function to open the project url
+    def open_url(self):
+        project = self.projectlist.get()
+        self.console.delete("all")
+        self.console.create_text(10, 10, anchor=NW, text="Output", fill="Red", font=(TEXT_FONT, 20, "bold"))
+    
+        if self.is_selected():
+            if os.path.exists(PATH+"/Projects/"+project+"/"+project+".url"):
+                url = get_data(file=PATH+"/Projects/"+project+"/"+project+"_dns_url.txt")
+                if url == "" or url == "Data not found":
+                    self.console.create_text(50, 50, anchor=NW, text="No url found", fill="white", font=(TEXT_FONT, 12, "bold"))
+                    messagebox.showinfo("Error","No url found")
+                else:
+                    self.console.create_text(50, 50, anchor=NW, text="URL found.\n   ==> URL = {}\n\nOpening URL...\nDone".format(url), fill="white", font=(TEXT_FONT, 12, "bold"))
+                    os.startfile(url)
+            else:
+                self.console.create_text(50, 50, anchor=NW, text="No URL found", fill="white", font=(TEXT_FONT, 12, "bold"))
+                messagebox.showinfo("Error","No url found")
+        else:
+            return
+
+            
 
 # Project Page
 class ProjectPage(tkinter.Frame):
