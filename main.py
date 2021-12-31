@@ -146,7 +146,7 @@ def create_project():
         print("Error in creating website")
         return 1
     
-
+# this is from flore
 # delete project function
 def delete_project():
     """
