@@ -159,7 +159,7 @@ class DetailPage(tkinter.Frame):
 
     # get the project list
     def get_project_list(self):
-        projects_name = os.listdir(PATH+"/projects/") 
+        projects_name = os.listdir(PATH+"/Projects/") 
         if projects_name == []:
             projects_name = ["NO PROJECT FOUND"]
         return projects_name
@@ -179,7 +179,7 @@ class DetailPage(tkinter.Frame):
                 self.console.create_text(50, 50, anchor=NW, text=data, fill="white", font=(TEXT_FONT, 12, "bold"))
             except:
                 try:
-                    data = get_data(file=PATH+"/projects/"+project+"/"+project+"_status.txt")
+                    data = get_data(file=PATH+"/Projects/"+project+"/"+project+"_status.txt")
                     if data == "" or data == "Data not found":
                         raise ValueError("Status not found")
                     self.console.create_text(50, 50, anchor=NW, text=data, fill="white", font=(TEXT_FONT, 12, "bold"))
