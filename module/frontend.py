@@ -344,8 +344,8 @@ class ConfigurationPage(tkinter.Frame):
 
         # Project Title Labels
         label1 = Label(self,text = "Project Name",font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2-200)  
-        label2 = Label(self,text = "AWS Secret Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2-100)
-        label3 = Label(self,text = "AWS Access Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2) 
+        label2 = Label(self,text = "AWS Access Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2-100)
+        label3 = Label(self,text = "AWS Secret Key",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2) 
         label4 = Label(self,text = "AWS Region",font=("comicsansms",  16, "bold"),bg="white").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2+100) 
                             
         # Entry Boxes                    
