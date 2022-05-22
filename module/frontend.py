@@ -50,7 +50,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(LoginPage)
+        self.show_frame(ProjectPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -318,7 +318,7 @@ class ProjectPage(tkinter.Frame):
         photo = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"logo2.png"))
         self.photo=photo
         self.can = Canvas(self , bg="white")
-        self.can.grid(row=0, column=1, rowspan=2, columnspan=3,sticky="nsew")
+        self.can.place(x=300,y=0)
         self.can.config(width=photo.width(), height=photo.height())  
         self.can.create_image(2, 2, image=photo, anchor=NW)
 
@@ -327,14 +327,14 @@ class ProjectPage(tkinter.Frame):
         self.image2 = PhotoImage(file=IMAGE_PATH+"create.png")
         self.image3 = PhotoImage(file=IMAGE_PATH+"upload.png")    
         self.image4 = PhotoImage(file=IMAGE_PATH+"home.png") 
-        b1 = tkinter.Button(self, text="Create Website",command=lambda: self.make_website(controller=controller),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange")
-        b1.grid(row=4, column=2,sticky="nsew")
+        b1 = tkinter.Button(self, text="Host Website",command=lambda: self.make_website(controller=controller),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="orange",width=400)
+        b1.place(x=FRAME_WIDTH/2-200, y=FRAME_HEIGHT-100)
 
-        b2 = tkinter.Button(self, text="Configure Project",command=lambda: controller.show_frame(ConfigurationPage)  ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
-        b2.grid(row=3, column=0,  pady=25,padx=30,sticky="nsew")
+        b2 = tkinter.Button(self,width=400, text="Credential Management",command=lambda: controller.show_frame(ConfigurationPage)  ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
+        b2.place(x=10, y=FRAME_HEIGHT-200)
 
-        b3 = tkinter.Button(self, text="Upload Website",command=lambda: self.create_project_folder(controller=controller),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="skyblue")
-        b3.grid(row=3, column=4,sticky="nsew",pady=25,padx=30,)
+        b3 = tkinter.Button(self, width=350,text="Code Management",command=lambda: self.create_project_folder(controller=controller),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
+        b3.place(x=FRAME_WIDTH/2+200, y=FRAME_HEIGHT-200)
 
         # Back button
         self.back_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"back.png"))
