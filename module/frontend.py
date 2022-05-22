@@ -50,7 +50,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(CodeManagementPage)
+        self.show_frame(DetailPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -180,7 +180,7 @@ class DetailPage(tkinter.Frame):
         # self.can = Canvas(self,bg="black",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30).place(x=FRAME_WIDTH/2-200,y=250)
         # self.can.create_text(self.can,text="Project Name :",font=(TEXT_FONT,15,"bold"),fill="white",anchor="nw",width=FRAME_WIDTH/2+100,height=FRAME_HEIGHT/2+30,tags="text")
         self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"detail-big.jpg"))
-        Label(self, text="",image=self.img,bd=0 ,foreground="blue").place(x=FRAME_WIDTH-300,y=FRAME_HEIGHT/2-130)
+        Label(self, text="",image=self.img,bd=0 ,foreground="blue").place(x=FRAME_WIDTH-300,y=FRAME_HEIGHT/2-60)
 
         # Frame for the console box
         self.frame = Frame(self, bg="grey",width=FRAME_WIDTH/2+200,height=FRAME_HEIGHT/2+30)
@@ -207,13 +207,19 @@ class DetailPage(tkinter.Frame):
 
         # button to open the project code folder
         self.image3 = PhotoImage(file=IMAGE_PATH+"code.png")
-        b3 = tkinter.Button(self, text="Open Code",command=lambda: self.open_project(),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
+        b3 = tkinter.Button(self, text="Open Code",command=lambda: controller.show_frame(CodeManagementPage),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
         b3.place(x=FRAME_WIDTH/2+50,y=FRAME_HEIGHT/2-132)
 
         # button to navigate to the project url
         self.image4 = PhotoImage(file=IMAGE_PATH+"url.png")
         b4 = tkinter.Button(self, text="URL",command=lambda: self.open_url(),image=self.image4, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light blue")
         b4.place(x=FRAME_WIDTH/2-100,y=FRAME_HEIGHT/2-132)
+
+        # Rehost Version Button
+        self.image5 = PhotoImage(file=IMAGE_PATH+"rehost-small.png")
+        b5 = tkinter.Button(self, text="Rehost Website",command=lambda: self.open_project(),image=self.image5, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="white")
+        b5.place(x=FRAME_WIDTH/2+250,y=FRAME_HEIGHT/2-132)
+
 
     # is selected project
     def is_selected(self):
