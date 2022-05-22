@@ -50,7 +50,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(ProjectPage)
+        self.show_frame(ConfigurationPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -403,7 +403,7 @@ class ConfigurationPage(tkinter.Frame):
         Button(self, text="Back",image=self.back_img, command=lambda: self.back_button(controller)).place(x=10,y=10)
         
         # Page Title
-        Label(self, text = 'Website Configuration', font =('Verdana', 35,"bold"),bg="white",fg="blue").pack(side = TOP, pady = 20)
+        Label(self, text = 'Credentials Manager', font =('Verdana', 35,"bold"),bg="white",fg="blue").pack(side = TOP, pady = 20)
         
         # Side Image
         self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"setting.png"))
@@ -424,12 +424,12 @@ class ConfigurationPage(tkinter.Frame):
         Entry(self,show="*",textvariable=input2,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
         input3 = StringVar()
         Entry(self,show="*",textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
-        input4 = StringVar()
+        input4 = StringVar(value="ap-south-1")
         Entry(self,textvariable=input4,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
         
         # Submit Button
         self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
-        b3 = tkinter.Button(self, text="Upload Variable",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),
+        b3 = tkinter.Button(self, text="Set Credentials",image=self.sub_img, compound=LEFT,padx=5, font=("comicsansms", 15, "bold"),
           command=lambda: self.submit(controller=controller,inputs=[input1.get(),input2.get(),input3.get(),input4.get()]), fg="black", bg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)
     
     # Submit Button Function
