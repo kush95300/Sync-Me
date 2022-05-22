@@ -13,6 +13,9 @@ from module.backend import *
 
 # Global Variables
 PATH =os.path.dirname(sys.modules['__main__'].__file__) # Get the path of the current file
+if(PATH==""):
+    PATH = "."
+print("Path:",PATH)
 IMAGE_PATH = "{}/images/".format(PATH)  # Get the path of images
 LARGE_FONT = ("Verdana", 12) 
 TEXT_FONT = "comicsansms"
@@ -50,7 +53,7 @@ class myAPP(tkinter.Tk):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(DetailPage)
+        self.show_frame(LoginPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
