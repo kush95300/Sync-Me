@@ -42,15 +42,15 @@ class myAPP(tkinter.Tk):
     def __init__(self):
         tkinter.Tk.__init__(self)
         
-        self.title("Multipage GUI")
+        self.title("Sync Me App")
         self.geometry(GEOMETRY)
         self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
         self.frames = {}
-        for F in (LoginPage,SignUpPage,StartPage, DetailPage, ConsolePage,ProjectPage,ConfigurationPage):
+        for F in (LoginPage,SignUpPage,StartPage, DetailPage, ConsolePage,ProjectPage,ConfigurationPage,CodeManagementPage):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(ConfigurationPage)
+        self.show_frame(CodeManagementPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -333,7 +333,7 @@ class ProjectPage(tkinter.Frame):
         b2 = tkinter.Button(self,width=400, text="Credential Management",command=lambda: controller.show_frame(ConfigurationPage)  ,image=self.image1, compound=LEFT,padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
         b2.place(x=10, y=FRAME_HEIGHT-200)
 
-        b3 = tkinter.Button(self, width=350,text="Code Management",command=lambda: self.create_project_folder(controller=controller),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
+        b3 = tkinter.Button(self, width=350,text="Code Management",command=lambda: controller.show_frame(CodeManagementPage),image=self.image3, compound=LEFT, padx=5, pady=5, font=("comicsansms", 20, "bold"), fg="black", bg="skyblue")
         b3.place(x=FRAME_WIDTH/2+200, y=FRAME_HEIGHT-200)
 
         # Back button
@@ -500,6 +500,75 @@ class ConfigurationPage(tkinter.Frame):
             controller.show_frame(StartPage)
         else:
             controller.show_frame(ProjectPage)
+
+# CodeMangement Page
+class CodeManagementPage(tkinter.Frame):
+    def __init__(self, parent, controller):
+        tkinter.Frame.__init__(self, parent,bg="lightblue")
+
+        # Page Title
+        Label(self, text = 'Code Management', font =('Verdana', 35,"bold"),bg="lightblue",fg="blue").pack(side = TOP, pady = 20)
+        
+        # Back button
+        self.back_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"back.png"))
+        Button(self, text="Back",image=self.back_img, command=lambda: controller.show_frame(ProjectPage)).place(x=10,y=10)
+
+
+        # Detail Image
+        self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"scm.png"))
+        Label(self, image=self.img).place( y=100, x=FRAME_WIDTH/2-425)
+
+        # Select Project 
+        Label(self,text = "Project Name :",font = (TEXT_FONT, 25, "bold"),bg="lightblue").place(x=80,y=FRAME_HEIGHT-250)
+        self.projectlist =ttk.Combobox(self, width = 27,font = (TEXT_FONT, 20, "bold"),state="readonly")
+        # Adding combobox drop down list
+        self.projectlist['values'] = self.get_project_list()
+        self.projectlist.place(x=FRAME_WIDTH/2-200,y=FRAME_HEIGHT-250)
+        self.projectlist.current()
+
+        ## Buttons
+
+        # button to refresh the project list
+        self.image2 = PhotoImage(file=IMAGE_PATH+"refresh.png")
+        b = tkinter.Button(self, text="Refresh",command=lambda: self.refresh_project(),image=self.image2, compound=LEFT, padx=5, pady=5, font=("comicsansms", 15, "bold"), fg="black", bg="light green")
+        b.place(x=FRAME_WIDTH/2+300,y=FRAME_HEIGHT-250)
+       
+        # Open with VScode Button
+        b1 = tkinter.Button(self, text="Open with VSCode", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
+          command=lambda: print("Vscode"), bg="blue",fg="white").place( y = FRAME_HEIGHT-160, x =100)
+        
+        #Open Code Folder Button
+        b2 = tkinter.Button(self, text="Open Code Folder ", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
+          command=lambda: print("code folder"),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = 100)
+        
+        #select Versions Button
+        b3 = tkinter.Button(self,  text="Download  Version ", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
+          command=lambda: print("Code Folder"), bg="blue",fg="white").place( y = FRAME_HEIGHT-160, x = FRAME_WIDTH/2+200)    
+        
+        
+        #compress and Upload Button
+        b4 = tkinter.Button(self, text="Compress & Upload", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
+          command=lambda: controller.show_frame(ProjectPage),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2+200)    
+
+        # Image Convertor button
+        self.convert_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"convertor.png"))
+        Button(self, text="IMage Convertor",border=0,image=self.convert_img,bg="lightblue", command=lambda: print("image Prcessed")).place(y = FRAME_HEIGHT-180, x = FRAME_WIDTH/2-75)
+
+
+     # get the project list
+    def get_project_list(self):
+        projects_name = os.listdir(PATH+"/Projects/") 
+        if projects_name == []:
+            projects_name = ["NO PROJECT FOUND"]
+        return projects_name
+    
+    # refresh the project list
+    def refresh_project(self):
+        self.projectlist.destroy()
+        self.projectlist =ttk.Combobox(self, width = 27,font = (TEXT_FONT, 20, "bold"),state="readonly",values=self.get_project_list())
+        self.projectlist.place(x=FRAME_WIDTH/2-200,y=FRAME_HEIGHT-250)
+        self.projectlist.current()
+
 
 # Console Page      
 class ConsolePage(tkinter.Frame):
