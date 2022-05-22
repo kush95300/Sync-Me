@@ -1,5 +1,2 @@
 pillow
-os
-time
-threading
 tk
