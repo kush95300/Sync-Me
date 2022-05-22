@@ -1,3 +1,4 @@
+from msilib.schema import Class
 import os,sys,shutil
 from subprocess import check_call
 import threading
@@ -45,11 +46,11 @@ class myAPP(tkinter.Tk):
         self.geometry(GEOMETRY)
         self.maxsize(FRAME_WIDTH, FRAME_HEIGHT)
         self.frames = {}
-        for F in (StartPage, DetailPage, ConsolePage,ProjectPage,ConfigurationPage):
+        for F in (LoginPage,SignUpPage,StartPage, DetailPage, ConsolePage,ProjectPage,ConfigurationPage):
             frame = F(self, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
+        self.show_frame(LoginPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -86,6 +87,74 @@ class StartPage(tkinter.Frame):
         global delete_project
         delete_project=True
         controller.show_frame(ConfigurationPage)
+
+# Login Page
+class LoginPage(tkinter.Frame):
+    def __init__(self, parent, controller):
+        tkinter.Frame.__init__(self, parent,bg="white")
+
+        # Page Title
+        Label(self, text = 'Login Menu', font =('Verdana', 35,"bold"),bg="white",fg="green").pack(side = TOP, pady = 10)
+        
+        # Signup button
+        self.signup_img = PhotoImage(file=IMAGE_PATH+"signup.png") #ImageTk.PhotoImage(Image.open(IMAGE_PATH+"back.png"))
+        Button(self, text="SignUp",image=self.signup_img, command=lambda: controller.show_frame(SignUpPage)).place(x=30,y=20)
+        
+        # Side Image
+        self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"login.jpg"))
+        Label(self, image=self.img).place( y=100, x=FRAME_WIDTH/2+50)
+
+        # Project Form
+
+        # Project Title Labels
+        label1 = Label(self,text = "User Name",font=("Verdana", 25, "bold"),bg="white",fg="red").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2-150)  
+        label2 = Label(self,text = "Password",font=("Verdana",  25, "bold"),bg="white",fg="red").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2)
+                            
+        # Entry Boxes                    
+        input1 = StringVar() 
+        Entry(self,textvariable=input1,width = 35,font=("comicsansms",20, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-100)
+        input2 = StringVar()
+        Entry(self,show="*",textvariable=input2,width = 35,font=("comicsansms", 20, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+60)
+        
+        # Submit Button
+        self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
+        b3 = tkinter.Button(self, text="Login",image=self.sub_img, compound=LEFT,padx=5, font=("Verdana", 35, "bold"),
+          command=lambda: controller.show_frame(StartPage), fg="green", bg="white").place( y = FRAME_HEIGHT-150, x = 200)    
+
+# Signup Page
+class SignUpPage(tkinter.Frame):
+    def __init__(self, parent, controller):
+        tkinter.Frame.__init__(self, parent,bg="lightgreen")
+
+        # Page Title
+        Label(self, text = 'Sign Up Menu', font =('Verdana', 35,"bold"),bg="lightgreen",fg="green").pack(side = TOP, pady = 20)
+        
+        # Side Image
+        self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"signup.jpg"))
+        Label(self, image=self.img).place( y=100, x=FRAME_WIDTH/2+50)
+
+        # Project Form
+
+        # Project Title Labels
+        label1 = Label(self,text = "User Name",font=("Verdana", 18, "bold"),bg="lightgreen",fg="black").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2-200)  
+        label2 = Label(self,text = "AWS Access Key",font=("Verdana",  18, "bold"),bg="lightgreen",fg="black").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2-100)
+        label3 = Label(self,text = "AWS Secret Key",font=("Verdana",  18, "bold"),bg="lightgreen",fg="black").place(x = FRAME_WIDTH/4-70,y = FRAME_HEIGHT/2) 
+        label4 = Label(self,text = "Password",font=("Verdana",  18, "bold"),bg="lightgreen",fg="black").place(x = FRAME_WIDTH/4-50,y = FRAME_HEIGHT/2+100) 
+                            
+        # Entry Boxes                    
+        input1 = StringVar() 
+        Entry(self,textvariable=input1,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-160)
+        input2 = StringVar()
+        Entry(self,show="*",textvariable=input2,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2-60)
+        input3 = StringVar()
+        Entry(self,show="*",textvariable=input3,width = 40,font=("comicsansms", 16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+40)
+        input4 = StringVar()
+        Entry(self,show="*",textvariable=input4,width = 40,font=("comicsansms",16, "bold"),bg="white").place(x = FRAME_WIDTH/4-220,y = FRAME_HEIGHT/2+140)
+        
+        # Submit Button
+        self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
+        b3 = tkinter.Button(self, text="Sign Up",image=self.sub_img, compound=LEFT,padx=5, font=("Verdana", 25, "bold"),
+          command=lambda: controller.show_frame(LoginPage), bg="white",fg="green").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)    
 
 # Detail Page
 class DetailPage(tkinter.Frame):
