@@ -10,6 +10,7 @@ from tkinter import messagebox
 from tkinter.font import BOLD
 from PIL import Image, ImageTk
 from module.backend import *
+from module.database import *
 
 # Global Variables
 PATH =os.path.dirname(sys.modules['__main__'].__file__) # Get the path of the current file
@@ -101,7 +102,7 @@ class LoginPage(tkinter.Frame):
         
         # Signup button
         self.signup_img = PhotoImage(file=IMAGE_PATH+"signup.png") #ImageTk.PhotoImage(Image.open(IMAGE_PATH+"back.png"))
-        Button(self, text="SignUp",image=self.signup_img, command=lambda: controller.show_frame(SignUpPage)).place(x=30,y=20)
+        Button(self,border=0, text="SignUp",image=self.signup_img, command=lambda: controller.show_frame(SignUpPage)).place(x=30,y=20)
         
         # Side Image
         self.img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"login.jpg"))
@@ -121,8 +122,22 @@ class LoginPage(tkinter.Frame):
         
         # Submit Button
         self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
-        b3 = tkinter.Button(self, text="Login",image=self.sub_img, compound=LEFT,padx=5, font=("Verdana", 35, "bold"),
-          command=lambda: controller.show_frame(StartPage), fg="green", bg="white").place( y = FRAME_HEIGHT-150, x = 200)    
+        b3 = tkinter.Button(self, text="Login",image=self.sub_img, compound=LEFT,padx=5, font=("Verdana", 35, "bold"),command=lambda: self.validate( controller = controller, inputs=[input1.get(),input2.get()]), fg="green", bg="white").place( y = FRAME_HEIGHT-150, x = 200)
+    
+    # validate the user name and password
+    def validate(self,controller,inputs):
+        auth=validate_user(PATH+"/.data/account.sql",inputs[0],inputs[1])
+        if auth[0] and auth[1]:
+            messagebox.showinfo("Login Successful","Welcome "+inputs[0])
+            controller.show_frame(StartPage)
+        elif auth[0] and not auth[1]:
+            messagebox.showerror("Error","Invalid Password")
+            controller.show_frame(LoginPage)
+        else:
+            print("Login Failed")
+            messagebox.showerror("Error","Invalid Username or user does not exist")
+            controller.show_frame(LoginPage)
+
 
 # Signup Page
 class SignUpPage(tkinter.Frame):
@@ -157,7 +172,17 @@ class SignUpPage(tkinter.Frame):
         # Submit Button
         self.sub_img= PhotoImage(file=IMAGE_PATH+"submit.png")
         b3 = tkinter.Button(self, text="Sign Up",image=self.sub_img, compound=LEFT,padx=5, font=("Verdana", 25, "bold"),
-          command=lambda: controller.show_frame(LoginPage), bg="white",fg="green").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400)    
+          command=lambda: self.create_user(controller=controller,inputs=[input1.get(),input2.get(),input3.get(),input4.get()]), bg="white",fg="green").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2-400) 
+
+    # create a new user
+    def create_user(self,controller,inputs):
+        user=create_user(PATH+"/.data/account.sql",inputs[0],inputs[1],inputs[2],inputs[3])
+        if not user:
+            messagebox.showinfo("Information","Sign Up Successful. User "+inputs[0]+" created")
+            controller.show_frame(LoginPage)
+        else:
+            messagebox.showerror("Error","User already exists")
+            controller.show_frame(SignUpPage)
 
 # Detail Page
 class DetailPage(tkinter.Frame):
