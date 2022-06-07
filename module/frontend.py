@@ -569,11 +569,11 @@ class CodeManagementPage(tkinter.Frame):
        
         # Open with VScode Button
         b1 = tkinter.Button(self, text="Open with VSCode", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
-          command=lambda: print("Vscode"), bg="blue",fg="white").place( y = FRAME_HEIGHT-160, x =100)
+          command=lambda: self.open_with_vscode(), bg="blue",fg="white").place( y = FRAME_HEIGHT-160, x =100)
         
         #Open Code Folder Button
         b2 = tkinter.Button(self, text="Open Code Folder ", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
-          command=lambda: print("code folder"),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = 100)
+          command=lambda: self.open_code_folder(),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = 100)
         
         #select Versions Button
         b3 = tkinter.Button(self,  text="Download  Version ", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
@@ -588,6 +588,21 @@ class CodeManagementPage(tkinter.Frame):
         self.convert_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"convertor.png"))
         Button(self, text="IMage Convertor",border=0,image=self.convert_img,bg="lightblue", command=lambda: print("image Prcessed")).place(y = FRAME_HEIGHT-180, x = FRAME_WIDTH/2-75)
 
+    # open code folder
+    def open_code_folder(self):
+        if self.projectlist.get() == "" or self.projectlist.get() == "NO PROJECT FOUND":
+            messagebox.showerror("Error","Please Select Project")
+            return
+        print("Code Folder")
+        os.system("code "+PATH+"/Projects/"+self.projectlist.get())
+    
+    # open with vscode
+    def open_with_vscode(self):
+        if self.projectlist.get() == "" or self.projectlist.get() == "NO PROJECT FOUND":
+            messagebox.showerror("Error","Please Select Project")
+            return
+        print("Open with VSCode")
+        os.system("code "+PATH+"/Projects/"+self.projectlist.get())
 
      # get the project list
     def get_project_list(self):
