@@ -112,3 +112,48 @@ def get_user_default_credentials(db_file, username):
         if conn:
             conn.close()
     return credentials
+
+# create creadentials table
+def create_cred_table(db_file):
+    """ create a database connection to a SQLite database """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+
+        # check user table exist
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        all = cur.fetchall()
+        tables = [item for t in all for item in t]
+        print(tables)
+
+        if "creds" not in tables:
+        
+            # Create Initial db and user
+            script = "CREATE TABLE if not EXISTS creds (project, access_key, secret_key, region)"
+            cur.execute(script)
+            print("Table creds created")
+    except Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.commit()                          
+            conn.close()
+
+# to add credetials to table
+def add_creds(db_file,project,access_key,secret_key,region):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+
+        # Create Initial db and user
+        script = "INSERT INTO creds (project, access_key, secret_key, region) VALUES ('{}', '{}', '{}', '{}')".format(project, access_key, secret_key, region)
+        cur.execute(script)
+        print("Creds added")
+    except Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.commit()                          
+            conn.close()

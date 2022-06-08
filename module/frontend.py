@@ -27,7 +27,7 @@ delete_project = False # Delete Project or not
 ENV_VARS = [] # Global variable to store the environment variables
 CODE_Uploaded = False       # variable showing code uploaded locally or not
 REFRESH=False               # Refresh the console window
-
+USER="testttttt"
 
 # Multipage GUI
 class myAPP(tkinter.Tk):
@@ -129,6 +129,8 @@ class LoginPage(tkinter.Frame):
         auth=validate_user(PATH+"/.data/account.sql",inputs[0],inputs[1])
         if auth[0] and auth[1]:
             messagebox.showinfo("Login Successful","Welcome "+inputs[0])
+            global USER
+            USER=inputs[0]
             controller.show_frame(StartPage)
         elif auth[0] and not auth[1]:
             messagebox.showerror("Error","Invalid Password")
@@ -201,6 +203,9 @@ class SignUpPage(tkinter.Frame):
                 buc=create_s3_bucket("syncme-user-"+inputs[0].lower()+"-bucket")
                 if buc:
                     os.mkdir(PATH+"/.users/"+inputs[0])
+                    with open(PATH+'/.users/'+inputs[0]+'/cred.sql', 'w') as fp:
+                        pass
+                    create_cred_table(PATH+'/.users/'+inputs[0]+'/cred.sql')
                 else:
                     messagebox.showerror("Error","Bucket Creation Failed. Please Verify correct credentials")
                     delete_user(PATH+"/.data/account.sql",inputs[0])
@@ -510,43 +515,51 @@ class ConfigurationPage(tkinter.Frame):
     # Submit Button Function
     def submit(self,controller,inputs):
         # import variables
+        global USER
         global ENV_VARS
         global delete_project
-        global CODE_Uploaded
 
         # Checking inputs are empty or not 
         for i in inputs:
             if i == "" or i == None:
                 messagebox.showerror("Error","Please fill all the inputs")
-                return
-
-        # Warn user to create website as webcode already exists
-        if delete_project == False and CODE_Uploaded == True:
-            messagebox.showwarning("Warning", "First Create Website of Uploaded Code")
-            choice = messagebox.askyesno("Warning", "Do you still want to create the Project? \n\n Current Project Code will locally saved. You can set that up again from detail page. ")
-            if choice == True:
-                pass
-            else:
-                controller.show_frame(ProjectPage)
+                return 
         
-        # Checking Project already exists or not 
-        if delete_project == False:
-            if os.path.exists(PATH+"/Projects/{}".format(inputs[0])):
-                messagebox.showerror("Error","Project Already Exists. Choose other name.")
+        # check if project name valid or not
+        if inputs[0].isalnum() and not inputs[0][0].isnumeric():    
+        
+            # Checking Project already exists or not 
+            if delete_project == False:
+                if os.path.exists(PATH+"/.users/{}/{}".format(USER,inputs[0])):
+                    messagebox.showerror("Error","Project Already Exists. Choose other name.")
+                    return
+
+            # Checking AWS CLI is installed or not
+            x = test_aws()
+            if x == False:
+                messagebox.showerror("ERROR","Please Install AWS CLI \n\n Refer the link:\n  https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")
                 return
 
-        # Checking AWS CLI is installed or not
-        x = test_aws()
-        if x == False:
-            messagebox.showerror("ERROR","Please Install AWS CLI \n\n Refer the link:\n  https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")
+            # Checking AWS Credentials and  Region is valid or not
+            y = test_aws_credentials(profile="default",aws_access_key_id= inputs[1],aws_secret_access_key= inputs[2],aws_region= inputs[3])
+            print(y)
+            if y == False:
+                messagebox.showerror("Credentials Error","Please Enter the correct AWS Credentials")
+                return
+            else:
+                add_creds(PATH+"/.users/"+USER+"/cred.sql",inputs[0],inputs[1],inputs[2],inputs[3])
+                os.mkdir(PATH+"/.users/{}/{}".format(USER,inputs[0]))
+                os.mkdir(PATH+"/.users/{}/{}/{}".format(USER,inputs[0],"Code"))
+                os.mkdir(PATH+"/.users/{}/{}/{}".format(USER,inputs[0],"versions"))
+                os.system("aws s3 sync {}/.users/{} s3://syncme-user-{}-bucket".format(PATH,USER,USER) )
+                status =set_aws_credentials_empty(profile_name="default")
+                if status==True:
+                    print("AWS credentials set to empty")
+                else:
+                    print("AWS credentials not set to empty")
+        else:
+            messagebox.showerror("Error","Only [a-zA-Z0-9] are allowed in project name and it should not start with a number")
             return
-
-        # Checking AWS Credentials and  Region is valid or not
-        y = test_aws_credentials(profile=inputs[0],aws_access_key_id= inputs[1],aws_secret_access_key= inputs[2],aws_region= inputs[3])
-        if y == False:
-            messagebox.showerror("Credentials Error","Please Enter the correct AWS Credentials")
-            return
-
 
         # set the global variable
         ENV_VARS = inputs
@@ -564,7 +577,7 @@ class ConfigurationPage(tkinter.Frame):
                 controller.show_frame(ConsolePage)
         else:
             # Route to Project Page
-            messagebox.showinfo("Success","Project Variables Configured Successfully")
+            messagebox.showinfo("Success","Project Credentials Successfully Set")
             controller.show_frame(ProjectPage)
     
     # Back Button Function
@@ -635,21 +648,31 @@ class CodeManagementPage(tkinter.Frame):
             messagebox.showerror("Error","Please Select Project")
             return
         print("Code Folder")
-        os.system("code "+PATH+"/Projects/"+self.projectlist.get())
+        os.system("start {}\\.users\\{}\\{}\\Code".format(PATH,USER,self.projectlist.get()))
     
     # open with vscode
     def open_with_vscode(self):
         if self.projectlist.get() == "" or self.projectlist.get() == "NO PROJECT FOUND":
             messagebox.showerror("Error","Please Select Project")
             return
-        print("Open with VSCode")
-        os.system("code "+PATH+"/Projects/"+self.projectlist.get())
+        
+        os.system("code {}/.users/{}/{}/Code".format(PATH,USER,self.projectlist.get()))
 
      # get the project list
     def get_project_list(self):
-        projects_name = os.listdir(PATH+"/Projects/") 
+        print(PATH+"/.users/"+USER+"/")
+        try:
+            projects_name = os.listdir(PATH+"/.users/"+USER+"/")
+        except:
+            return ["NO PROJECT FOUND"]
+        print(projects_name)
         if projects_name == []:
             projects_name = ["NO PROJECT FOUND"]
+        try: 
+           projects_name.remove("cred.sql")
+        except:
+           pass
+        print(projects_name)
         return projects_name
     
     # refresh the project list
