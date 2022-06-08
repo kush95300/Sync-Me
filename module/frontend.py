@@ -176,12 +176,53 @@ class SignUpPage(tkinter.Frame):
 
     # create a new user
     def create_user(self,controller,inputs):
-        user=create_user(PATH+"/.data/account.sql",inputs[0],inputs[1],inputs[2],inputs[3])
-        if not user:
-            messagebox.showinfo("Information","Sign Up Successful. User "+inputs[0]+" created")
-            controller.show_frame(LoginPage)
+        # check all the inputs are filled
+        for i in inputs:
+            if i == "" or i == None:
+                messagebox.showerror("Error","Please fill all the inputs")
+                return
+
+        # Cehck user name constraints
+        if inputs[0].isalnum() and not inputs[0][0].isnumeric():
+            # Checking AWS CLI is installed or not
+            x = test_aws()
+            if x == False:
+                messagebox.showerror("ERROR","Please Install AWS CLI \n\n Refer the link:\n  https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")
+                return
+
+            # Checking AWS Credentials and  Region is valid or not
+            y = test_aws_credentials(profile="default",aws_access_key_id= inputs[1],aws_secret_access_key= inputs[2],aws_region= "ap-south-1")
+            if y == False:
+                messagebox.showerror("Credentials Error","Please Enter the correct AWS Credentials")
+                return
+            
+            user=create_user(PATH+"/.data/account.sql",inputs[0],inputs[3],inputs[1],inputs[2])
+            if not user:
+                buc=create_s3_bucket("syncme-user-"+inputs[0].lower()+"-bucket")
+                if buc:
+                    os.mkdir(PATH+"/.users/"+inputs[0])
+                else:
+                    messagebox.showerror("Error","Bucket Creation Failed. Please Verify correct credentials")
+                    delete_user(PATH+"/.data/account.sql",inputs[0])
+                    status =set_aws_credentials_empty(profile_name="default")
+                    if status==True:
+                        print("AWS credentials set to empty")
+                    else:
+                        print("AWS credentials not set to empty")
+                    controller.show_frame(SignUpPage)
+                    return
+                messagebox.showinfo("Information","Sign Up Successful. User "+inputs[0]+" created")
+                status =set_aws_credentials_empty(profile_name="default")
+                if status==True:
+                    print("AWS credentials set to empty")
+                else:
+                    print("AWS credentials not set to empty")
+                controller.show_frame(LoginPage)
+            else:
+                messagebox.showerror("Error","User already exists")
+                controller.show_frame(SignUpPage)
         else:
-            messagebox.showerror("Error","User already exists")
+            messagebox.showerror("Error","Only [a-zA-Z0-9] are allowed in username and username should not start with a number")
             controller.show_frame(SignUpPage)
 
 # Detail Page

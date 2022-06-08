@@ -9,8 +9,8 @@ def get_users(db_file):
         cur = conn.cursor()
 
         # check user user exist
-        cur.execute("SELECT  * from users")
-        all = cur.fetchall()
+        cur.execute("SELECT  username from users")
+        all = cur.fetchall()    
         users = [x[0] for x in all]
     except Error as e:
         print(e)
@@ -80,4 +80,35 @@ def validate_user(db_file, username, password):
         if conn:
             conn.close()
     return (exist, passwd)
-    
+
+def delete_user(db_file, username):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        statement = "DELETE FROM users WHERE username = '{}'".format(username)
+        cur.execute(statement)
+            
+    except Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.commit()
+            conn.close()
+
+
+def get_user_default_credentials(db_file, username):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        statement = "SELECT default_access_key, default_secret_key from users WHERE username = '{}'".format(username)
+        cur.execute(statement)
+        credentials = cur.fetchone()
+        print(credentials)
+    except Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+    return credentials

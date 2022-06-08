@@ -810,10 +810,11 @@ def test_aws_credentials(profile,aws_access_key_id,aws_secret_access_key,aws_reg
         print("AWS Credentials not set")
         
     # Test Credentials
-    aws_credentials = sp.getstatusoutput("aws ec2 describe-vpcs --profile={}".format(profile))
+    aws_credentials = sp.getstatusoutput("aws s3 ls")
+    print(aws_credentials)
     if aws_credentials[0]!=0:
         print("Error in AWS credentials")
-        status =set_aws_credentials_empty(profile_name=profile)
+        status =set_aws_credentials_empty(profile_name="default")
         if status==True:
             print("AWS credentials set to empty")
         else:
@@ -821,5 +822,30 @@ def test_aws_credentials(profile,aws_access_key_id,aws_secret_access_key,aws_reg
         return False
     else:
         print("AWS credentials working")
-        print(aws_credentials)
         return True
+
+# create s3 bucket
+def create_s3_bucket(bucket_name):
+    """
+    Description:
+    Create s3 bucket
+
+    Input:
+    bucket_name: Name of the bucket to be created
+    profile: AWS profile name
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    aws_create_bucket=sp.getstatusoutput("aws s3 mb s3://{} ".format(bucket_name))
+    if aws_create_bucket[0]==0:
+        print("S3 bucket created")
+        return True
+    else:
+        print("S3 bucket not created")
+        print(aws_create_bucket)
+        return False

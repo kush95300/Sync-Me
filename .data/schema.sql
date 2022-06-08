@@ -7,3 +7,5 @@ INSERT INTO users (username, password) VALUES ("admin","user");
 -- List users
 SELECT * FROM users;
 
+-- Delete Row
+DELETE FROM users WHERE username = "admin";
