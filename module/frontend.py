@@ -1,3 +1,4 @@
+from distutils.file_util import write_file
 from msilib.schema import Class
 import os,sys,shutil
 from subprocess import check_call
@@ -548,6 +549,14 @@ class ConfigurationPage(tkinter.Frame):
                 return
             else:
                 add_creds(PATH+"/.users/"+USER+"/cred.sql",inputs[0],inputs[1],inputs[2],inputs[3])
+                if not os.path.exists(PATH+"/.users/{}/projects.txt".format(USER)):
+                    with open(PATH+"/.users/"+USER+"/projects.txt", "w") as f:
+                        f.write("0")
+                with open(PATH+"/.users/"+USER+"/projects.txt", "r") as f:
+                    no=f.read()
+                with open(PATH+"/.users/"+USER+"/projects.txt", "w") as f:
+                    f.write(str(int(no)+1))
+                    
                 os.mkdir(PATH+"/.users/{}/{}".format(USER,inputs[0]))
                 os.mkdir(PATH+"/.users/{}/{}/{}".format(USER,inputs[0],"Code"))
                 os.mkdir(PATH+"/.users/{}/{}/{}".format(USER,inputs[0],"versions"))
@@ -636,7 +645,7 @@ class CodeManagementPage(tkinter.Frame):
         
         #compress and Upload Button
         b4 = tkinter.Button(self, text="Compress & Upload", compound=LEFT,padx=5, font=("Verdana", 18, "bold"),
-          command=lambda: controller.show_frame(ProjectPage),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2+200)    
+          command=lambda: self.compress_and_upload(controller),  bg="blue",fg="white").place( y = FRAME_HEIGHT-100, x = FRAME_WIDTH/2+200)    
 
         # Image Convertor button
         self.convert_img = ImageTk.PhotoImage(Image.open(IMAGE_PATH+"convertor.png"))
@@ -657,6 +666,35 @@ class CodeManagementPage(tkinter.Frame):
             return
         
         os.system("code {}/.users/{}/{}/Code".format(PATH,USER,self.projectlist.get()))
+    
+    # compress and upload
+    def compress_and_upload(self,controller):
+        if self.projectlist.get() == "" or self.projectlist.get() == "NO PROJECT FOUND":
+            controller.show_frame(ProjectPage)
+            return
+        if len(os.listdir(PATH+"/.users/{}/{}/Code".format(USER,self.projectlist.get()))) == 0:
+            messagebox.showerror("Error","Please Upload Code")
+            return
+        else:
+            # get version
+            with open(PATH+"/.users/"+USER+"/projects.txt", "r") as f:
+                version=f.read()
+            # Compress the code
+            compress_website(project=self.projectlist.get(),version=version,path="{}/.users/{}/{}".format(PATH,USER,self.projectlist.get()))
+            if compress_website == False:
+                messagebox.showerror("Error","Compress Version already exist")          
+                return
+            
+            # Remove Code
+            shutil.rmtree(PATH+"/.users/{}/{}/Code".format(USER,self.projectlist.get()))
+            os.mkdir(PATH+"/.users/{}/{}/Code".format(USER,self.projectlist.get()))
+            # increase version
+            with open(PATH+"/.users/"+USER+"/projects.txt", "w") as f:
+                f.write(str(int(version)+1))
+            # Upload the code
+            print("Upload to s3 left")
+            messagebox.showinfo("Success","Code Compressed and Uploaded")
+            controller.show_frame(ProjectPage)
 
      # get the project list
     def get_project_list(self):
@@ -670,6 +708,7 @@ class CodeManagementPage(tkinter.Frame):
             projects_name = ["NO PROJECT FOUND"]
         try: 
            projects_name.remove("cred.sql")
+           projects_name.remove("projects.txt")
         except:
            pass
         print(projects_name)

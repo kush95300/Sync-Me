@@ -1,8 +1,10 @@
+import shutil
 import subprocess as sp
 import os
 from time import sleep
 import time
 from tkinter.constants import TRUE
+from zipfile import ZipFile
 
 # All Functions are mentioned below
 
@@ -849,3 +851,35 @@ def create_s3_bucket(bucket_name):
         print("S3 bucket not created")
         print(aws_create_bucket)
         return False
+
+# Compress website
+def compress_website(project,version,path):
+    """
+    Description:
+    Compress website
+
+    Input:
+    website_name: Name of the website
+    path: Path of the website
+
+    Output:
+    None
+
+    Message:
+    None
+
+    """
+    print("Compressing website")
+    if os.path.exists(path+"/versions/"+project+"-"+version+".zip"):
+        print("Website already compressed")
+        return False
+    else:
+        print("Website not compressed.Compressing...")
+        shutil.make_archive(project+"-"+version, 'zip', path+"/versions")
+        files = os.listdir(path+"/Code/")
+        with ZipFile(path+"/versions/"+project+"-"+version+".zip", "w") as newzip:
+            for file in files:
+                newzip.write(path+"/Code/"+file)  
+        if os.path.exists(project+"-"+version+".zip"):
+            os.remove(project+"-"+version+".zip")
+        return True
